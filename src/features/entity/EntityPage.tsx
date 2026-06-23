@@ -1,24 +1,21 @@
-"use client";
-
 import { TreeView, createTreeCollection } from "@chakra-ui/react";
-import { LuFile, LuFolder } from "react-icons/lu";
+import { Box, ChevronDown, ChevronRight } from "lucide-react";
 
 function EntityTree() {
   return (
     <TreeView.Root collection={collection} maxW="sm">
-      <TreeView.Label>Tree</TreeView.Label>
       <TreeView.Tree>
         <TreeView.Node
           indentGuide={<TreeView.BranchIndentGuide />}
           render={({ node, nodeState }) =>
             nodeState.isBranch ? (
               <TreeView.BranchControl>
-                <LuFolder />
+                {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
                 <TreeView.BranchText>{node.name}</TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
               <TreeView.Item>
-                <LuFile />
+                <Box />
                 <TreeView.ItemText>{node.name}</TreeView.ItemText>
               </TreeView.Item>
             )
