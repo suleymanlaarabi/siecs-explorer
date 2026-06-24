@@ -6,51 +6,10 @@ import {
   createTreeCollection,
 } from "@chakra-ui/react";
 import { Box, ChevronDown, ChevronRight } from "lucide-react";
-
-interface Node {
-  id: string;
-  name: string;
-  children?: Node[];
-}
-
-const collection = createTreeCollection<Node>({
-  nodeToValue: (node) => node.id,
-  nodeToString: (node) => node.name,
-  rootNode: {
-    id: "ROOT",
-    name: "",
-    children: [
-      {
-        id: "node_modules",
-        name: "node_modules",
-        children: [
-          { id: "node_modules/zag-js", name: "zag-js" },
-          { id: "node_modules/pandacss", name: "panda" },
-          {
-            id: "node_modules/@types",
-            name: "@types",
-            children: [
-              { id: "node_modules/@types/react", name: "react" },
-              { id: "node_modules/@types/react-dom", name: "react-dom" },
-            ],
-          },
-        ],
-      },
-      {
-        id: "src",
-        name: "src",
-        children: [
-          { id: "src/app.tsx", name: "app.tsx" },
-          { id: "src/index.ts", name: "index.ts" },
-        ],
-      },
-      { id: "panda.config", name: "panda.config.ts" },
-      { id: "package.json", name: "package.json" },
-      { id: "renovate.json", name: "renovate.json" },
-      { id: "readme.md", name: "README.md" },
-    ],
-  },
-});
+import { useEntities } from "../../hooks/useEntities";
+import { useMemo, useState } from "react";
+import { siecsClient, type Entity } from "../../client";
+import { useQueryClient } from "@tanstack/react-query";
 
 function TreeTabs() {
   return (
@@ -63,48 +22,111 @@ function TreeTabs() {
   );
 }
 
+type EntityNode = Entity & {
+  id: string;
+  children?: EntityNode[];
+  childrenCount?: number;
+};
+
+function toEntityNode(entity: Entity): EntityNode {
+  return {
+    ...entity,
+    id: `${entity.index}:${entity.generation}`,
+    childrenCount: entity.hasChildren ? 1 : 0,
+  };
+}
+
+function withLoadedChildren(
+  loadedChildren: Record<string, EntityNode[]>,
+  node: EntityNode,
+): EntityNode {
+  return {
+    ...node,
+    children: loadedChildren[node.id]?.map((node) =>
+      withLoadedChildren(loadedChildren, node),
+    ),
+  };
+}
+
 function EntityTree() {
+  const queryClient = useQueryClient();
+  const { data: entities = [] } = useEntities();
+
+  const [loadedChildren, setLoadedChildren] = useState<
+    Record<string, EntityNode[]>
+  >({});
+
+  const collection = useMemo(() => {
+    const root = {
+      id: "root",
+      name: "root",
+      index: -1,
+      generation: 0,
+      hasChildren: true,
+      children: entities
+        .map(toEntityNode)
+        .map((node) => withLoadedChildren(loadedChildren, node)),
+    } satisfies EntityNode;
+
+    return createTreeCollection<EntityNode>({
+      rootNode: root,
+      nodeToValue: (node) => node.id,
+      nodeToString: (node) => node.name,
+      nodeToChildren: (node) => node.children || [],
+    });
+  }, [entities, loadedChildren]);
+
   return (
     <TreeView.Root
       collection={collection}
       bg="bg.muted"
-      rounded={"none"}
+      rounded="none"
       height="100%"
+      lazyMount
+      loadChildren={async ({ node }) => {
+        const children = await queryClient.fetchQuery({
+          queryKey: ["entities", node.index, node.generation, "children"],
+          queryFn: async () => {
+            const entities = await siecsClient.entities(node);
+            return entities.map(toEntityNode);
+          },
+        });
+
+        setLoadedChildren((current) => ({
+          ...current,
+          [node.id]: children,
+        }));
+
+        return children;
+      }}
     >
       <TreeTabs />
+
       <TreeView.Tree>
         <TreeView.Node
           indentGuide={<TreeView.BranchIndentGuide />}
           render={({ node, nodeState }) =>
-            nodeState.isBranch ? (
+            node.hasChildren ? (
               <TreeView.BranchControl
-                _hover={{
-                  bg: "bg.emphasized",
-                }}
-                _selected={{
-                  bg: "bg.emphasized",
-                }}
-                rounded={"none"}
+                rounded="none"
+                _hover={{ bg: "bg.emphasized" }}
+                _selected={{ bg: "bg.emphasized" }}
               >
                 {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
-                <TreeView.BranchText fontSize={"md"}>
+
+                <TreeView.BranchText fontSize="md">
                   {node.name}
                 </TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
               <TreeView.Item
-                _hover={{
-                  bg: "bg.emphasized",
-                }}
-                _selected={{
-                  bg: "bg.emphasized",
-                }}
-                rounded={"none"}
+                rounded="none"
+                _hover={{ bg: "bg.emphasized" }}
+                _selected={{ bg: "bg.emphasized" }}
               >
                 <Box />
-                <TreeView.ItemText fontSize={"md"}>
-                  {node.name}
-                </TreeView.ItemText>
+
+                <TreeView.ItemText fontSize="md">{node.name}</TreeView.ItemText>
               </TreeView.Item>
             )
           }
