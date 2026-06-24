@@ -28,6 +28,11 @@ export class SiecsError extends Error {
   }
 }
 
+type Component = {
+  id: number;
+  name: string;
+};
+
 export class SiecsClient {
   private readonly url: string;
 
@@ -43,6 +48,10 @@ export class SiecsClient {
     }
 
     return this.get(`/entities/${entityId(parent)}`);
+  }
+
+  async components(): Promise<Component[]> {
+    return this.get("/components");
   }
 
   async entity(entity: EntityLike): Promise<Entity> {

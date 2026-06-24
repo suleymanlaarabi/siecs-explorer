@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import Root from "./features/Root";
-import { EntityPage } from "./features/entity/EntityPage";
+import { WorldEditorPage } from "./features/world/WorldEditorPage";
 
 export const router = createBrowserRouter([
   {
@@ -9,7 +9,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <EntityPage />,
+        element: <WorldEditorPage />,
       },
     ],
   },
