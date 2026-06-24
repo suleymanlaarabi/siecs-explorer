@@ -1,23 +1,6 @@
-import { Center, Splitter, Tabs } from "@chakra-ui/react";
-import { EntityTree } from "./EntityTree";
-import { ComponentList } from "./ComponentList";
-
-function TreeTabs() {
-  return (
-    <Tabs.Root defaultValue="entities" h={"full"} rounded={"none"} lazyMount>
-      <Tabs.List>
-        <Tabs.Trigger value="entities">Entities</Tabs.Trigger>
-        <Tabs.Trigger value="components">Components</Tabs.Trigger>
-      </Tabs.List>
-      <Tabs.Content value="entities" h={"full"} p={0} m={0}>
-        <EntityTree />
-      </Tabs.Content>
-      <Tabs.Content value="components" p={0} m={0}>
-        <ComponentList />
-      </Tabs.Content>
-    </Tabs.Root>
-  );
-}
+import { Center, Splitter } from "@chakra-ui/react";
+import { WorldEditorPaneLeft } from "./WorldEditorPaneLeft";
+import { WorldEditorPaneRight } from "./WorldEditorPaneRight";
 
 export function WorldEditorPage() {
   return (
@@ -29,7 +12,7 @@ export function WorldEditorPage() {
       rounded={"md"}
     >
       <Splitter.Panel id="a" bg={"bg.panel"}>
-        <TreeTabs />
+        <WorldEditorPaneLeft />
       </Splitter.Panel>
       <Splitter.ResizeTrigger id="a:b" />
       <Splitter.Panel id="b">
@@ -40,9 +23,7 @@ export function WorldEditorPage() {
       <Splitter.ResizeTrigger id="b:c" />
 
       <Splitter.Panel id="c">
-        <Center boxSize="full" textStyle="2xl">
-          C
-        </Center>
+        <WorldEditorPaneRight />
       </Splitter.Panel>
     </Splitter.Root>
   );

@@ -28,7 +28,7 @@ export class SiecsError extends Error {
   }
 }
 
-type Component = {
+export type Component = {
   id: number;
   name: string;
 };
