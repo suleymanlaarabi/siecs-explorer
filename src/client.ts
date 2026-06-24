@@ -28,9 +28,32 @@ export class SiecsError extends Error {
   }
 }
 
-export type Component = {
+export type ComponentTypeKind = "struct" | "string" | "number";
+
+export type Primitive = "number" | "entity" | "string" | "object";
+
+export type TypeDef = {
   id: number;
   name: string;
+  primitive: Primitive;
+};
+
+export type ComponentField = {
+  name: string;
+  type: number; // TypeDef["id"]
+};
+
+export type ComponentDef = {
+  id: number;
+  name: string;
+  isRelation: boolean;
+  type: number; // TypeDef["id"]
+  fields: ComponentField[];
+};
+
+export type Schema = {
+  components: ComponentDef[];
+  types: TypeDef[];
 };
 
 export class SiecsClient {
@@ -50,8 +73,8 @@ export class SiecsClient {
     return this.get(`/entities/${entityId(parent)}`);
   }
 
-  async components(): Promise<Component[]> {
-    return this.get("/components");
+  async schema(): Promise<Schema> {
+    return this.get("/schema");
   }
 
   async entity(entity: EntityLike): Promise<Entity> {
