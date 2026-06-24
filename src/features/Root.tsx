@@ -29,7 +29,7 @@ function Header() {
 
 export default function Root() {
   return (
-    <VStack p={4} alignItems={"flex-start"}>
+    <VStack p={4} alignItems={"flex-start"} h={"dvh"}>
       <Header />
       <Outlet />
     </VStack>

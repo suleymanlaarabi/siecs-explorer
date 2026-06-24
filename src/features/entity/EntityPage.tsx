@@ -1,30 +1,11 @@
-import { TreeView, createTreeCollection } from "@chakra-ui/react";
+import {
+  Center,
+  Splitter,
+  Tabs,
+  TreeView,
+  createTreeCollection,
+} from "@chakra-ui/react";
 import { Box, ChevronDown, ChevronRight } from "lucide-react";
-
-function EntityTree() {
-  return (
-    <TreeView.Root collection={collection} maxW="sm">
-      <TreeView.Tree>
-        <TreeView.Node
-          indentGuide={<TreeView.BranchIndentGuide />}
-          render={({ node, nodeState }) =>
-            nodeState.isBranch ? (
-              <TreeView.BranchControl>
-                {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
-                <TreeView.BranchText>{node.name}</TreeView.BranchText>
-              </TreeView.BranchControl>
-            ) : (
-              <TreeView.Item>
-                <Box />
-                <TreeView.ItemText>{node.name}</TreeView.ItemText>
-              </TreeView.Item>
-            )
-          }
-        />
-      </TreeView.Tree>
-    </TreeView.Root>
-  );
-}
 
 interface Node {
   id: string;
@@ -71,10 +52,93 @@ const collection = createTreeCollection<Node>({
   },
 });
 
+function TreeTabs() {
+  return (
+    <Tabs.Root defaultValue="entities" rounded={"none"}>
+      <Tabs.List>
+        <Tabs.Trigger value="entities">Entities</Tabs.Trigger>
+        <Tabs.Trigger value="components">Components</Tabs.Trigger>
+      </Tabs.List>
+    </Tabs.Root>
+  );
+}
+
+function EntityTree() {
+  return (
+    <TreeView.Root
+      collection={collection}
+      bg="bg.muted"
+      rounded={"none"}
+      height="100%"
+    >
+      <TreeTabs />
+      <TreeView.Tree>
+        <TreeView.Node
+          indentGuide={<TreeView.BranchIndentGuide />}
+          render={({ node, nodeState }) =>
+            nodeState.isBranch ? (
+              <TreeView.BranchControl
+                _hover={{
+                  bg: "bg.emphasized",
+                }}
+                _selected={{
+                  bg: "bg.emphasized",
+                }}
+                rounded={"none"}
+              >
+                {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
+                <TreeView.BranchText fontSize={"md"}>
+                  {node.name}
+                </TreeView.BranchText>
+              </TreeView.BranchControl>
+            ) : (
+              <TreeView.Item
+                _hover={{
+                  bg: "bg.emphasized",
+                }}
+                _selected={{
+                  bg: "bg.emphasized",
+                }}
+                rounded={"none"}
+              >
+                <Box />
+                <TreeView.ItemText fontSize={"md"}>
+                  {node.name}
+                </TreeView.ItemText>
+              </TreeView.Item>
+            )
+          }
+        />
+      </TreeView.Tree>
+    </TreeView.Root>
+  );
+}
+
 export function EntityPage() {
   return (
-    <>
-      <EntityTree />
-    </>
+    <Splitter.Root
+      panels={[{ id: "a", minSize: 15 }, { id: "b" }, { id: "c" }]}
+      defaultSize={[15, 60, 25]}
+      borderWidth="1px"
+      minH="60"
+      rounded={"md"}
+    >
+      <Splitter.Panel id="a">
+        <EntityTree />
+      </Splitter.Panel>
+      <Splitter.ResizeTrigger id="a:b" />
+      <Splitter.Panel id="b">
+        <Center boxSize="full" textStyle="2xl">
+          B
+        </Center>
+      </Splitter.Panel>
+      <Splitter.ResizeTrigger id="b:c" />
+
+      <Splitter.Panel id="c">
+        <Center boxSize="full" textStyle="2xl">
+          C
+        </Center>
+      </Splitter.Panel>
+    </Splitter.Root>
   );
 }
