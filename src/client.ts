@@ -83,8 +83,9 @@ export class SiecsClient {
 
   async health(): Promise<boolean> {
     try {
-      this.get("/health");
-      return true;
+      const result = await fetch(this.url + "/health");
+      if (result.ok) return true;
+      return false;
     } catch {
       return false;
     }

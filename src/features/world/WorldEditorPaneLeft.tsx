@@ -9,7 +9,7 @@ export function WorldEditorPaneLeft() {
 
   return (
     <Tabs.Root
-      defaultValue="entities"
+      defaultValue="entity"
       h={"full"}
       rounded={"none"}
       lazyMount
