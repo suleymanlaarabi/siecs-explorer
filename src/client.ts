@@ -81,6 +81,15 @@ export class SiecsClient {
     this.url = `${protocol}://${host}:${port}`;
   }
 
+  async health(): Promise<boolean> {
+    try {
+      this.get("/health");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async entities(): Promise<Entity[]> {
     return this.get("/entities");
   }
@@ -131,3 +140,5 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+setInterval(() => {});
