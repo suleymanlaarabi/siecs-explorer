@@ -40,7 +40,13 @@ export class SiecsError extends Error {
   }
 }
 
-export type EditorType = "boolean" | "number" | "entity" | "string" | "object" | "unsupported";
+export type EditorType =
+  | "boolean"
+  | "number"
+  | "entity"
+  | "string"
+  | "object"
+  | "unsupported";
 
 export type TypeDef = {
   id: number;
@@ -115,4 +121,13 @@ export function entityId(entity: EntityLike): number {
 
 export const siecsClient = new SiecsClient();
 
-export const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnMount: false,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: false,
+      refetchIntervalInBackground: false,
+    },
+  },
+});
