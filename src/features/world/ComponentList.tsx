@@ -22,7 +22,14 @@ export function ComponentList() {
     <Listbox.Root
       onValueChange={(el) => {
         const item = el.items.pop();
-        setSelectedComponent(item);
+        setSelectedComponent(
+          item
+            ? {
+                component: item,
+                schema: data!,
+              }
+            : undefined,
+        );
       }}
       collection={collections}
       width="full"
