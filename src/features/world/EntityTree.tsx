@@ -4,9 +4,11 @@ import { useEntities } from "../../hooks/useEntities";
 import { useMemo, useState } from "react";
 import { siecsClient, type Entity } from "../../client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSetAtom } from "jotai";
+import { worldEditorSelectedEntityAtom } from "./atom";
 
 type EntityNode = Entity & {
-  id: string;
+  id: number;
   children?: EntityNode[];
   childrenCount?: number;
 };
@@ -14,7 +16,7 @@ type EntityNode = Entity & {
 function toEntityNode(entity: Entity): EntityNode {
   return {
     ...entity,
-    id: `${entity.index}:${entity.generation}`,
+    id: entity.index,
     childrenCount: entity.hasChildren ? 1 : 0,
   };
 }
@@ -25,39 +27,54 @@ function withLoadedChildren(
 ): EntityNode {
   return {
     ...node,
-    children: loadedChildren[node.id]?.map((node) =>
-      withLoadedChildren(loadedChildren, node),
-    ),
+    children: loadedChildren[node.id]?.map((node) => withLoadedChildren(loadedChildren, node)),
   };
+}
+
+function findEntityNode(nodes: EntityNode[], index: number): EntityNode | undefined {
+  for (const node of nodes) {
+    if (node.index === index) {
+      return node;
+    }
+
+    const child = findEntityNode(node.children || [], index);
+    if (child) {
+      return child;
+    }
+  }
 }
 
 export function EntityTree() {
   const queryClient = useQueryClient();
   const { data: entities = [] } = useEntities();
 
-  const [loadedChildren, setLoadedChildren] = useState<
-    Record<string, EntityNode[]>
-  >({});
+  const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
 
-  const collection = useMemo(() => {
-    const root = {
-      id: "root",
+  const [loadedChildren, setLoadedChildren] = useState<Record<string, EntityNode[]>>({});
+
+  const root = useMemo(() => {
+    const children = entities
+      .map(toEntityNode)
+      .map((node) => withLoadedChildren(loadedChildren, node));
+
+    return {
+      id: 0,
       name: "root",
       index: -1,
       generation: 0,
       hasChildren: true,
-      children: entities
-        .map(toEntityNode)
-        .map((node) => withLoadedChildren(loadedChildren, node)),
+      children,
     } satisfies EntityNode;
+  }, [entities, loadedChildren]);
 
+  const collection = useMemo(() => {
     return createTreeCollection<EntityNode>({
       rootNode: root,
-      nodeToValue: (node) => node.id,
+      nodeToValue: (node) => node.id.toString(),
       nodeToString: (node) => node.name,
       nodeToChildren: (node) => node.children || [],
     });
-  }, [entities, loadedChildren]);
+  }, [root]);
 
   return (
     <TreeView.Root
@@ -67,11 +84,19 @@ export function EntityTree() {
       bg={"bg.panel"}
       p={1}
       lazyMount
+      onSelectionChange={(selected) => {
+        const index = Number(selected.selectedValue);
+        setSelectedEntity(findEntityNode(root.children || [], index));
+      }}
       loadChildren={async ({ node }) => {
+        if (node.index < 0) {
+          return node.children || [];
+        }
+
         const children = await queryClient.fetchQuery({
           queryKey: ["entities", node.index, node.generation, "children"],
           queryFn: async () => {
-            const entities = await siecsClient.entities(node);
+            const entities = await siecsClient.entityChildren(node);
             return entities.map(toEntityNode);
           },
         });
@@ -101,9 +126,7 @@ export function EntityTree() {
               >
                 {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
 
-                <TreeView.BranchText fontSize="md">
-                  {node.name}
-                </TreeView.BranchText>
+                <TreeView.BranchText fontSize="md">{node.name}</TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
               <TreeView.Item
