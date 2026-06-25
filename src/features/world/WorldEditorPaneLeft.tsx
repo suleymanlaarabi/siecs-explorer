@@ -13,6 +13,7 @@ export function WorldEditorPaneLeft() {
       h={"full"}
       rounded={"none"}
       lazyMount
+      unmountOnExit
       onValueChange={(tab) => {
         setEditorState(tab.value as "entity" | "component");
       }}
