@@ -7,6 +7,18 @@ export type Entity = {
   hasChildren: boolean;
 };
 
+export type EntityComponent = {
+  id: number;
+  name: string;
+  value: unknown;
+};
+
+export type EntityDetail = Entity & {
+  parent?: Entity;
+  children: Entity[];
+  components: EntityComponent[];
+};
+
 export type EntityLike =
   | number
   | Entity
@@ -28,14 +40,12 @@ export class SiecsError extends Error {
   }
 }
 
-export type ComponentTypeKind = "struct" | "string" | "number";
-
-export type Primitive = "number" | "entity" | "string" | "object";
+export type EditorType = "boolean" | "number" | "entity" | "string" | "object" | "unsupported";
 
 export type TypeDef = {
   id: number;
   name: string;
-  primitive: Primitive;
+  editor: EditorType;
 };
 
 export type ComponentField = {
@@ -65,20 +75,20 @@ export class SiecsClient {
     this.url = `${protocol}://${host}:${port}`;
   }
 
-  async entities(parent?: EntityLike): Promise<Entity[]> {
-    if (!parent) {
-      return this.get("/entities");
-    }
-
-    return this.get(`/entities/${entityId(parent)}`);
+  async entities(): Promise<Entity[]> {
+    return this.get("/entities");
   }
 
   async schema(): Promise<Schema> {
     return this.get("/schema");
   }
 
-  async entity(entity: EntityLike): Promise<Entity> {
+  async entity(entity: EntityLike): Promise<EntityDetail> {
     return this.get(`/entities/${entityId(entity)}`);
+  }
+
+  async entityChildren(entity: EntityLike): Promise<Entity[]> {
+    return this.get(`/entities/${entityId(entity)}/children`);
   }
 
   private async get<T>(path: string): Promise<T> {
