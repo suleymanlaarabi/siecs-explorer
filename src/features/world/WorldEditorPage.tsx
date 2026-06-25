@@ -5,7 +5,7 @@ import { WorldEditorPaneRight } from "./WorldEditorPaneRight";
 export function WorldEditorPage() {
   return (
     <Splitter.Root
-      panels={[{ id: "a", minSize: 15 }, { id: "b" }, { id: "c" }]}
+      panels={[{ id: "a", minSize: 15 }, { id: "b" }, { id: "c", minSize: 15 }]}
       defaultSize={[15, 60, 25]}
       borderWidth="1px"
       minH="60"
