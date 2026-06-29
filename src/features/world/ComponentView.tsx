@@ -8,7 +8,10 @@ type ComponentInspectorProps = {
   componentId: number;
 };
 
-export function ComponentInspector({ schema, componentId }: ComponentInspectorProps) {
+export function ComponentInspector({
+  schema,
+  componentId,
+}: ComponentInspectorProps) {
   const component = schema.components.find((c) => c.id === componentId)!;
 
   const typeById = new Map(schema.types.map((type) => [type.id, type]));
@@ -20,19 +23,23 @@ export function ComponentInspector({ schema, componentId }: ComponentInspectorPr
           <HStack justify="space-between">
             <Heading size="md">{component.name}</Heading>
 
-            <Badge variant="surface">{component.isRelation ? "Relation" : "Component"}</Badge>
+            <Badge variant="surface">
+              {component.isRelation ? "Relation" : "Component"}
+            </Badge>
           </HStack>
 
-          <VStack align="stretch" gap="1">
-            <Text color="fg.muted">Fields</Text>
-            {component.fields.map((field) => (
-              <HStack key={field.name} py="2">
-                <Text flex="1">{field.name}</Text>
+          {component.fields.length > 0 ? (
+            <VStack align="stretch" gap="1">
+              <Text color="fg.muted">Fields</Text>
+              {component.fields.map((field) => (
+                <HStack key={field.name} py="2">
+                  <Text flex="1">{field.name}</Text>
 
-                <Text color="fg.muted">{typeById.get(field.type)?.name}</Text>
-              </HStack>
-            ))}
-          </VStack>
+                  <Text color="fg.muted">{typeById.get(field.type)?.name}</Text>
+                </HStack>
+              ))}
+            </VStack>
+          ) : null}
         </VStack>
       </Card.Body>
     </Card.Root>
