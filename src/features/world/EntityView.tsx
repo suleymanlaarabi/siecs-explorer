@@ -94,10 +94,7 @@ function EntityDetailShell({
               </Text>
             </VStack>
 
-            <Badge
-              variant="surface"
-              colorPalette={entity.hasChildren ? "green" : "gray"}
-            >
+            <Badge variant="surface" colorPalette={entity.hasChildren ? "green" : "gray"}>
               {entity.hasChildren ? "Has children" : "Leaf"}
             </Badge>
           </HStack>
@@ -153,14 +150,7 @@ function EntityComponents({ components }: { components: EntityComponent[] }) {
 function ComponentBlock({ component }: { component: EntityComponent }) {
   return (
     <Box borderWidth="1px" rounded="md" overflow="hidden">
-      <HStack
-        justify="space-between"
-        gap="3"
-        px="3"
-        py="2"
-        bg="bg.subtle"
-        borderBottomWidth="1px"
-      >
+      <HStack justify="space-between" gap="3" px="3" py="2" bg="bg.subtle" borderBottomWidth="1px">
         <Text fontWeight="medium" wordBreak="break-word">
           {component.name}
         </Text>
@@ -208,12 +198,7 @@ function ComponentValue({ value }: { value: unknown }) {
       <VStack align="stretch" gap="2">
         {value.map((item, index) => (
           <HStack key={index} align="start" gap="3">
-            <Badge
-              variant="surface"
-              colorPalette="gray"
-              minW="8"
-              justifyContent="center"
-            >
+            <Badge variant="surface" colorPalette="gray" minW="8" justifyContent="center">
               {index}
             </Badge>
             <Box flex="1" minW="0">

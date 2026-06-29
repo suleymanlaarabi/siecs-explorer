@@ -1,4 +1,4 @@
-import { TreeView, createTreeCollection } from "@chakra-ui/react";
+import { Button, TreeView, createTreeCollection } from "@chakra-ui/react";
 import { Box, ChevronDown, ChevronRight } from "lucide-react";
 import { useEntities } from "../../hooks/useEntities";
 import { useMemo, useState } from "react";
@@ -146,6 +146,9 @@ export function EntityTree() {
           }
         />
       </TreeView.Tree>
+      <Button variant={"outline"} mx={1}>
+        New entity
+      </Button>
     </TreeView.Root>
   );
 }

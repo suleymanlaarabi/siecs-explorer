@@ -40,13 +40,7 @@ export class SiecsError extends Error {
   }
 }
 
-export type EditorType =
-  | "boolean"
-  | "number"
-  | "entity"
-  | "string"
-  | "object"
-  | "unsupported";
+export type EditorType = "boolean" | "number" | "entity" | "string" | "object" | "unsupported";
 
 export type TypeDef = {
   id: number;
