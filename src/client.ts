@@ -40,7 +40,13 @@ export class SiecsError extends Error {
   }
 }
 
-export type EditorType = "boolean" | "number" | "entity" | "string" | "object" | "unsupported";
+export type EditorType =
+  | "boolean"
+  | "number"
+  | "entity"
+  | "string"
+  | "object"
+  | "unsupported";
 
 export type TypeDef = {
   id: number;
@@ -89,6 +95,10 @@ export class SiecsClient {
     return this.get("/entities");
   }
 
+  async createEntity(): Promise<Entity> {
+    return this.post("/entities");
+  }
+
   async schema(): Promise<Schema> {
     return this.get("/schema");
   }
@@ -110,6 +120,21 @@ export class SiecsClient {
 
     if (!response.ok) {
       throw new SiecsError(`GET ${path} failed: ${response.status}`);
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  private async post<T>(path: string): Promise<T> {
+    const response = await fetch(this.url + path, {
+      headers: {
+        accept: "application/json",
+      },
+      method: "POST",
+    });
+
+    if (!response.ok) {
+      throw new SiecsError(`POST ${path} failed: ${response.status}`);
     }
 
     return response.json() as Promise<T>;

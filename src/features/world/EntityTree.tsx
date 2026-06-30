@@ -27,11 +27,16 @@ function withLoadedChildren(
 ): EntityNode {
   return {
     ...node,
-    children: loadedChildren[node.id]?.map((node) => withLoadedChildren(loadedChildren, node)),
+    children: loadedChildren[node.id]?.map((node) =>
+      withLoadedChildren(loadedChildren, node),
+    ),
   };
 }
 
-function findEntityNode(nodes: EntityNode[], index: number): EntityNode | undefined {
+function findEntityNode(
+  nodes: EntityNode[],
+  index: number,
+): EntityNode | undefined {
   for (const node of nodes) {
     if (node.index === index) {
       return node;
@@ -50,7 +55,9 @@ export function EntityTree() {
 
   const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
 
-  const [loadedChildren, setLoadedChildren] = useState<Record<string, EntityNode[]>>({});
+  const [loadedChildren, setLoadedChildren] = useState<
+    Record<string, EntityNode[]>
+  >({});
 
   const root = useMemo(() => {
     const children = entities
@@ -126,7 +133,9 @@ export function EntityTree() {
               >
                 {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
 
-                <TreeView.BranchText fontSize="md">{node.name}</TreeView.BranchText>
+                <TreeView.BranchText fontSize="md">
+                  {node.name}
+                </TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
               <TreeView.Item
@@ -146,7 +155,13 @@ export function EntityTree() {
           }
         />
       </TreeView.Tree>
-      <Button variant={"outline"} mx={1}>
+      <Button
+        variant={"outline"}
+        mx={1}
+        onClick={async () => {
+          await siecsClient.createEntity();
+        }}
+      >
         New entity
       </Button>
     </TreeView.Root>
