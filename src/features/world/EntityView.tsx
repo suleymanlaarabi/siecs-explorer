@@ -3,6 +3,7 @@ import {
   Box,
   Card,
   Code,
+  Collapsible,
   DataList,
   EmptyState,
   Heading,
@@ -20,8 +21,9 @@ import {
   siecsClient,
   type Entity,
   type EntityComponent,
-  type EntityDetail as EntityDetailType,
+  type EntityDetail,
 } from "../../client";
+import { ChevronRight } from "lucide-react";
 
 export function EntityView() {
   const entity = useAtomValue(worldEditorSelectedEntityAtom);
@@ -63,13 +65,70 @@ function EntityDetail({ entity }: { entity: Entity }) {
     return null;
   }
 
+  return <WithDataEntityDetail entity={data} />;
+}
+
+function WithDataEntityDetail({
+  entity,
+  detail = true,
+}: {
+  entity: EntityDetail;
+  detail?: boolean;
+}) {
+  if (detail) {
+    return (
+      <EntityDetailShell entity={entity}>
+        <EntityComponents components={entity.components} />
+        {entity.isA ? (
+          <Collapsible.Root lazyMount>
+            <Collapsible.Trigger
+              paddingY="3"
+              display="flex"
+              gap="2"
+              alignItems="center"
+            >
+              <Collapsible.Indicator
+                transition="transform 0.2s"
+                _open={{ transform: "rotate(90deg)" }}
+              >
+                <ChevronRight />
+              </Collapsible.Indicator>
+              Inheritance
+            </Collapsible.Trigger>
+            <Collapsible.Content>
+              <WithDataEntityDetail entity={entity.isA} detail={false} />
+            </Collapsible.Content>
+          </Collapsible.Root>
+        ) : null}
+      </EntityDetailShell>
+    );
+  }
   return (
-    <EntityDetailShell entity={data}>
-      <VStack align="stretch" gap="6">
-        <EntityMetadata entity={data} />
-        <EntityComponents components={data.components} />
-      </VStack>
-    </EntityDetailShell>
+    <VStack align="stretch" gap="6">
+      <Heading wordBreak="break-word">{entity.name}</Heading>
+      <EntityComponents components={entity.components} />
+      {entity.isA ? (
+        <Collapsible.Root lazyMount>
+          <Collapsible.Trigger
+            paddingY="3"
+            display="flex"
+            gap="2"
+            alignItems="center"
+          >
+            <Collapsible.Indicator
+              transition="transform 0.2s"
+              _open={{ transform: "rotate(90deg)" }}
+            >
+              <ChevronRight />
+            </Collapsible.Indicator>
+            Inheritance
+          </Collapsible.Trigger>
+          <Collapsible.Content>
+            <WithDataEntityDetail entity={entity.isA} detail={false} />
+          </Collapsible.Content>
+        </Collapsible.Root>
+      ) : null}
+    </VStack>
   );
 }
 
@@ -94,7 +153,10 @@ function EntityDetailShell({
               </Text>
             </VStack>
 
-            <Badge variant="surface" colorPalette={entity.hasChildren ? "green" : "gray"}>
+            <Badge
+              variant="surface"
+              colorPalette={entity.hasChildren ? "green" : "gray"}
+            >
               {entity.hasChildren ? "Has children" : "Leaf"}
             </Badge>
           </HStack>
@@ -111,23 +173,6 @@ function EntityDetailShell({
         </VStack>
       </Card.Body>
     </Card.Root>
-  );
-}
-
-function EntityMetadata({ entity }: { entity: EntityDetailType }) {
-  return (
-    <Section title="Details">
-      <DataList.Root orientation="horizontal">
-        <DataList.Item>
-          <DataList.ItemLabel>Generation</DataList.ItemLabel>
-          <DataList.ItemValue>{entity.generation}</DataList.ItemValue>
-        </DataList.Item>
-        <DataList.Item>
-          <DataList.ItemLabel>Children</DataList.ItemLabel>
-          <DataList.ItemValue>{entity.children.length}</DataList.ItemValue>
-        </DataList.Item>
-      </DataList.Root>
-    </Section>
   );
 }
 
@@ -150,16 +195,25 @@ function EntityComponents({ components }: { components: EntityComponent[] }) {
 function ComponentBlock({ component }: { component: EntityComponent }) {
   return (
     <Box borderWidth="1px" rounded="md" overflow="hidden">
-      <HStack justify="space-between" gap="3" px="3" py="2" bg="bg.subtle" borderBottomWidth="1px">
+      <HStack
+        justify="space-between"
+        gap="3"
+        px="3"
+        py="2"
+        bg="bg.subtle"
+        borderBottomWidth={component.value != null ? "1px" : undefined}
+      >
         <Text fontWeight="medium" wordBreak="break-word">
           {component.name}
         </Text>
         <Badge variant="outline">#{component.id}</Badge>
       </HStack>
 
-      <Box p="3">
-        <ComponentValue value={component.value} />
-      </Box>
+      {component.value != null ? (
+        <Box p="3">
+          <ComponentValue value={component.value} />
+        </Box>
+      ) : null}
     </Box>
   );
 }
@@ -198,7 +252,12 @@ function ComponentValue({ value }: { value: unknown }) {
       <VStack align="stretch" gap="2">
         {value.map((item, index) => (
           <HStack key={index} align="start" gap="3">
-            <Badge variant="surface" colorPalette="gray" minW="8" justifyContent="center">
+            <Badge
+              variant="surface"
+              colorPalette="gray"
+              minW="8"
+              justifyContent="center"
+            >
               {index}
             </Badge>
             <Box flex="1" minW="0">

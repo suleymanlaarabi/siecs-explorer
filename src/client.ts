@@ -17,6 +17,7 @@ export type EntityDetail = Entity & {
   parent?: Entity;
   children: Entity[];
   components: EntityComponent[];
+  isA?: EntityDetail;
 };
 
 export type EntityLike =
