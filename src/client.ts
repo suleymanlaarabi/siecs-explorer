@@ -112,6 +112,19 @@ export class SiecsClient {
     return this.get(`/entities/${entityId(entity)}/children`);
   }
 
+  async setComponent(
+    entity: EntityLike,
+    componentId: number,
+    value: unknown,
+  ): Promise<unknown> {
+    const res = this.put(
+      `/entities/${entityId(entity)}/components/${componentId}`,
+      value,
+    );
+
+    return res;
+  }
+
   private async get<T>(path: string): Promise<T> {
     const response = await fetch(this.url + path, {
       headers: {
@@ -126,12 +139,17 @@ export class SiecsClient {
     return response.json() as Promise<T>;
   }
 
-  private async post<T>(path: string): Promise<T> {
+  private async request<T>(
+    path: string,
+    method: string,
+    data: unknown = undefined,
+  ): Promise<T> {
     const response = await fetch(this.url + path, {
       headers: {
         accept: "application/json",
       },
-      method: "POST",
+      method,
+      body: data != undefined ? JSON.stringify(data) : undefined,
     });
 
     if (!response.ok) {
@@ -139,6 +157,13 @@ export class SiecsClient {
     }
 
     return response.json() as Promise<T>;
+  }
+
+  private async post<T>(path: string, data: unknown = undefined): Promise<T> {
+    return this.request(path, "POST", data);
+  }
+  private async put<T>(path: string, data: unknown = undefined): Promise<T> {
+    return this.request(path, "PUT", data);
   }
 }
 
