@@ -160,6 +160,9 @@ export function EntityTree() {
         mx={1}
         onClick={async () => {
           await siecsClient.createEntity();
+          queryClient.refetchQueries({
+            queryKey: ["entities"]
+          })
         }}
       >
         New entity
