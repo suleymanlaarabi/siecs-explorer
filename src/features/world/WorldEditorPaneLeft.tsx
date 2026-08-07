@@ -11,6 +11,7 @@ export function WorldEditorPaneLeft() {
     <Tabs.Root
       defaultValue="entity"
       h={"full"}
+      minH={0}
       rounded={"none"}
       lazyMount
       unmountOnExit
@@ -25,7 +26,7 @@ export function WorldEditorPaneLeft() {
       <Tabs.Content value="entity" h={"full"} p={0} m={0}>
         <EntityTree />
       </Tabs.Content>
-      <Tabs.Content value="component" p={0} m={0}>
+      <Tabs.Content value="component" h={"full"} minH={0} p={0} m={0}>
         <ComponentList />
       </Tabs.Content>
     </Tabs.Root>

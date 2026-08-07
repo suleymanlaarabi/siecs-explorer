@@ -88,6 +88,7 @@ export function EntityTree() {
       collection={collection}
       rounded="none"
       height="100%"
+      overflowY="auto"
       bg={"bg.panel"}
       p={1}
       lazyMount

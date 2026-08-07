@@ -33,12 +33,30 @@ export function ComponentList() {
       }}
       collection={collections}
       width="full"
-      h={"full"}
+      height={"full"}
     >
-      <Listbox.Content rounded={"none"} border={"none"}>
+      <Listbox.Content
+        rounded={"none"}
+        border={"none"}
+        height="full"
+        maxH="none"
+      >
         {collections.items.map((component) => (
-          <Listbox.Item item={component} key={component.id}>
-            <Listbox.ItemText>{component.name}</Listbox.ItemText>
+          <Listbox.Item
+            item={component}
+            key={component.id}
+            flex="none"
+            rounded="xs"
+            _hover={{
+              bg: "bg.emphasized/60",
+            }}
+            _selected={{
+              bg: "bg.muted",
+            }}
+          >
+            <Listbox.ItemText fontSize="md">
+              {component.name}
+            </Listbox.ItemText>
           </Listbox.Item>
         ))}
       </Listbox.Content>
