@@ -116,13 +116,10 @@ export class SiecsClient {
     entity: EntityLike,
     componentId: number,
     value: unknown,
-  ): Promise<unknown> {
-    const res = this.put(
-      `/entities/${entityId(entity)}/components/${componentId}`,
+  ): Promise<EntityComponent> {
+    return this.put<EntityComponent>(`/entities/${entityId(entity)}/components/${componentId}`, {
       value,
-    );
-
-    return res;
+    });
   }
 
   private async get<T>(path: string): Promise<T> {
@@ -147,13 +144,14 @@ export class SiecsClient {
     const response = await fetch(this.url + path, {
       headers: {
         accept: "application/json",
+        ...(data !== undefined ? { "content-type": "application/json" } : {}),
       },
       method,
       body: data != undefined ? JSON.stringify(data) : undefined,
     });
 
     if (!response.ok) {
-      throw new SiecsError(`POST ${path} failed: ${response.status}`);
+      throw new SiecsError(`${method} ${path} failed: ${response.status}`);
     }
 
     return response.json() as Promise<T>;

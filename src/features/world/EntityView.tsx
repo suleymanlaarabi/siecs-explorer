@@ -17,13 +17,16 @@ import {
 import { useAtomValue } from "jotai";
 import { worldEditorSelectedEntityAtom } from "./atom";
 import { useQuery } from "@tanstack/react-query";
+import { useComponents } from "../../hooks/useComponents";
 import {
   siecsClient,
   type Entity,
   type EntityComponent,
   type EntityDetail,
+  type Schema,
 } from "../../client";
 import { ChevronRight } from "lucide-react";
+import { EntityComponentEditor } from "./ComponentEditor";
 
 export function EntityView() {
   const entity = useAtomValue(worldEditorSelectedEntityAtom);
@@ -36,6 +39,7 @@ export function EntityView() {
 }
 
 function EntityDetail({ entity }: { entity: Entity }) {
+  const schemaQuery = useComponents();
   const { data, error, isLoading } = useQuery({
     queryKey: ["entity", entity.index, entity.generation],
     queryFn: () => siecsClient.entity(entity),
@@ -65,20 +69,22 @@ function EntityDetail({ entity }: { entity: Entity }) {
     return null;
   }
 
-  return <WithDataEntityDetail entity={data} />;
+  return <WithDataEntityDetail entity={data} schema={schemaQuery.data} />;
 }
 
 function WithDataEntityDetail({
   entity,
+  schema,
   detail = true,
 }: {
   entity: EntityDetail;
+  schema?: Schema;
   detail?: boolean;
 }) {
   if (detail) {
     return (
       <EntityDetailShell entity={entity}>
-        <EntityComponents components={entity.components} />
+        <EntityComponents entity={entity} schema={schema} components={entity.components} />
         {entity.isA ? (
           <Collapsible.Root lazyMount>
             <Collapsible.Trigger
@@ -96,7 +102,7 @@ function WithDataEntityDetail({
               Inheritance
             </Collapsible.Trigger>
             <Collapsible.Content>
-              <WithDataEntityDetail entity={entity.isA} detail={false} />
+              <WithDataEntityDetail entity={entity.isA} schema={schema} detail={false} />
             </Collapsible.Content>
           </Collapsible.Root>
         ) : null}
@@ -106,7 +112,7 @@ function WithDataEntityDetail({
   return (
     <VStack align="stretch" gap="6">
       <Heading wordBreak="break-word">{entity.name}</Heading>
-      <EntityComponents components={entity.components} />
+      <EntityComponents entity={entity} schema={schema} components={entity.components} />
       {entity.isA ? (
         <Collapsible.Root lazyMount>
           <Collapsible.Trigger
@@ -124,7 +130,7 @@ function WithDataEntityDetail({
             Inheritance
           </Collapsible.Trigger>
           <Collapsible.Content>
-            <WithDataEntityDetail entity={entity.isA} detail={false} />
+            <WithDataEntityDetail entity={entity.isA} schema={schema} detail={false} />
           </Collapsible.Content>
         </Collapsible.Root>
       ) : null}
@@ -176,13 +182,21 @@ function EntityDetailShell({
   );
 }
 
-function EntityComponents({ components }: { components: EntityComponent[] }) {
+function EntityComponents({
+  entity,
+  schema,
+  components,
+}: {
+  entity: EntityDetail;
+  schema?: Schema;
+  components: EntityComponent[];
+}) {
   return (
     <Section title="Components" aside={`${components.length}`}>
       {components.length > 0 ? (
         <VStack align="stretch" gap="3">
           {components.map((component) => (
-            <ComponentBlock key={component.id} component={component} />
+            <ComponentBlock key={component.id} entity={entity} schema={schema} component={component} />
           ))}
         </VStack>
       ) : (
@@ -192,7 +206,17 @@ function EntityComponents({ components }: { components: EntityComponent[] }) {
   );
 }
 
-function ComponentBlock({ component }: { component: EntityComponent }) {
+function ComponentBlock({
+  entity,
+  schema,
+  component,
+}: {
+  entity: EntityDetail;
+  schema?: Schema;
+  component: EntityComponent;
+}) {
+  const definition = schema?.components.find((item) => item.id === component.id);
+
   return (
     <Box borderWidth="1px" rounded="md" overflow="hidden">
       <HStack
@@ -201,7 +225,7 @@ function ComponentBlock({ component }: { component: EntityComponent }) {
         px="3"
         py="2"
         bg="bg.subtle"
-        borderBottomWidth={component.value != null ? "1px" : undefined}
+        borderBottomWidth={definition || component.value != null ? "1px" : undefined}
       >
         <Text fontWeight="medium" wordBreak="break-word">
           {component.name}
@@ -209,7 +233,16 @@ function ComponentBlock({ component }: { component: EntityComponent }) {
         <Badge variant="outline">#{component.id}</Badge>
       </HStack>
 
-      {component.value != null ? (
+      {definition ? (
+        <Box p="3">
+          <EntityComponentEditor
+            entity={entity}
+            component={definition}
+            schema={schema!}
+            entityComponent={component}
+          />
+        </Box>
+      ) : component.value != null ? (
         <Box p="3">
           <ComponentValue value={component.value} />
         </Box>
