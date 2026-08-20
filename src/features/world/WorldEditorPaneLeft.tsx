@@ -12,6 +12,8 @@ export function WorldEditorPaneLeft() {
       defaultValue="entity"
       h={"full"}
       minH={0}
+      display="flex"
+      flexDirection="column"
       rounded={"none"}
       lazyMount
       unmountOnExit
@@ -23,10 +25,10 @@ export function WorldEditorPaneLeft() {
         <Tabs.Trigger value="entity">Entities</Tabs.Trigger>
         <Tabs.Trigger value="component">Components</Tabs.Trigger>
       </Tabs.List>
-      <Tabs.Content value="entity" h={"full"} p={0} m={0}>
+      <Tabs.Content value="entity" flex="1" minH={0} p={0} m={0}>
         <EntityTree />
       </Tabs.Content>
-      <Tabs.Content value="component" h={"full"} minH={0} p={0} m={0}>
+      <Tabs.Content value="component" flex="1" minH={0} p={0} m={0}>
         <ComponentList />
       </Tabs.Content>
     </Tabs.Root>
