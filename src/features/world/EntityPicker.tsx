@@ -1,19 +1,9 @@
-import {
-  Button,
-  createListCollection,
-  HStack,
-  Input,
-  InputGroup,
-  Listbox,
-  Popover,
-  Portal,
-  Spinner,
-  Text,
-} from "@chakra-ui/react";
-import { ChevronDown, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import { Button, Popover, Portal, Text } from "@chakra-ui/react";
+import { ChevronDown } from "lucide-react";
 import type { EntityLike, EntityRef } from "../../client";
-import { useEntities } from "../../hooks/useEntities";
+import { SearchableListbox } from "../../components/SearchableListbox";
+import { useAllEntities } from "./entityQueries";
 
 export function EntityPicker({
   value,
@@ -26,38 +16,17 @@ export function EntityPicker({
   disabled?: boolean;
   label?: string;
 }) {
-  const entitiesQuery = useEntities();
+  const entitiesQuery = useAllEntities();
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const selected =
     typeof value === "object"
       ? value
       : entitiesQuery.data?.find((entity) => entity.index === value);
-  const filtered = useMemo(() => {
-    const normalized = search.trim().toLowerCase().replace(/^#/, "");
-    if (!normalized) return entitiesQuery.data ?? [];
-    return (entitiesQuery.data ?? []).filter(
-      (entity) =>
-        entity.name.toLowerCase().includes(normalized) || String(entity.index).includes(normalized),
-    );
-  }, [entitiesQuery.data, search]);
-  const collection = useMemo(
-    () =>
-      createListCollection({
-        items: filtered,
-        itemToString: (entity) => entity.name || `Entity ${entity.index}`,
-        itemToValue: (entity) => `${entity.index}:${entity.generation}`,
-      }),
-    [filtered],
-  );
 
   return (
     <Popover.Root
       open={open}
-      onOpenChange={(details) => {
-        setOpen(details.open);
-        if (!details.open) setSearch("");
-      }}
+      onOpenChange={(details) => setOpen(details.open)}
       positioning={{ placement: "bottom-start", sameWidth: true }}
     >
       <Popover.Trigger asChild>
@@ -83,64 +52,34 @@ export function EntityPicker({
         <Popover.Positioner>
           <Popover.Content maxW="sm">
             <Popover.Body p="2">
-              <Listbox.Root
-                collection={collection}
-                value={selected ? [`${selected.index}:${selected.generation}`] : []}
-                onValueChange={(details) => {
-                  const entity = details.items[0];
+              <SearchableListbox
+                key={open ? "open" : "closed"}
+                items={entitiesQuery.data ?? []}
+                value={selected}
+                searchPlaceholder="Search entities..."
+                getKey={(entity) => `${entity.index}:${entity.generation}`}
+                getLabel={(entity) => entity.name || `Entity ${entity.index}`}
+                filter={(entity, search) =>
+                  entity.name.toLowerCase().includes(search) ||
+                  String(entity.index).includes(search)
+                }
+                isLoading={entitiesQuery.isLoading}
+                error={entitiesQuery.error ? "Unable to load entities" : undefined}
+                onChange={(entity) => {
                   if (entity) {
                     onChange(entity);
                     setOpen(false);
                   }
                 }}
-              >
-                <InputGroup startElement={<Search size={14} />}>
-                  <Input
-                    autoFocus
-                    placeholder="Search components..."
-                    aria-label="Search components"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                </InputGroup>
-                <Listbox.Content border="none" p="0" maxH="56" overflowY="auto">
-                  {entitiesQuery.isLoading ? (
-                    <HStack justify="center" py="4">
-                      <Spinner size="sm" />
-                      <Text textStyle="sm" color="fg.muted">
-                        Loading entities…
-                      </Text>
-                    </HStack>
-                  ) : entitiesQuery.error ? (
-                    <Text textStyle="sm" color="fg.error" p="2">
-                      Unable to load entities
+                renderItem={(entity) => (
+                  <Text truncate>
+                    {entity.name || "Unnamed entity"}{" "}
+                    <Text as="span" color="fg.muted">
+                      #{entity.index}
                     </Text>
-                  ) : filtered.length === 0 ? (
-                    <Listbox.Empty textStyle="sm" color="fg.muted" p="2">
-                      No entities found
-                    </Listbox.Empty>
-                  ) : (
-                    collection.items.map((entity) => (
-                      <Listbox.Item
-                        key={`${entity.index}:${entity.generation}`}
-                        item={entity}
-                        minH="8"
-                        px="2"
-                        rounded="sm"
-                        _hover={{ bg: "bg.subtle" }}
-                        _selected={{ bg: "bg.muted" }}
-                      >
-                        <HStack justify="space-between" w="full">
-                          <Listbox.ItemText truncate>
-                            {entity.name || "Unnamed entity"}
-                          </Listbox.ItemText>
-                          <Text color="fg.muted">#{entity.index}</Text>
-                        </HStack>
-                      </Listbox.Item>
-                    ))
-                  )}
-                </Listbox.Content>
-              </Listbox.Root>
+                  </Text>
+                )}
+              />
             </Popover.Body>
           </Popover.Content>
         </Popover.Positioner>

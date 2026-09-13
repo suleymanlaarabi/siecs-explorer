@@ -104,6 +104,10 @@ export class SiecsClient {
     return this.get("/entities");
   }
 
+  async allEntities(): Promise<Entity[]> {
+    return this.get("/entities/all");
+  }
+
   async createEntity(): Promise<Entity> {
     return this.post("/entities");
   }

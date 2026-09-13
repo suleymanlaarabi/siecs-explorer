@@ -1,12 +1,11 @@
 import { Card, EmptyState, Heading, HStack, Skeleton, Text, VStack } from "@chakra-ui/react";
-import { useQuery } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import type { ReactNode } from "react";
-import { siecsClient, type EntityRef } from "../../client";
+import type { EntityRef } from "../../client";
 import { useSchema } from "../../hooks/useSchema";
 import { worldEditorSelectedEntityAtom } from "./atom";
 import { EntityInspector } from "./entity/EntityInspector";
-import { useIsEntityMutating } from "./hooks/useEntityMutations";
+import { useEntity } from "./entityQueries";
 
 export function EntityView() {
   const entity = useAtomValue(worldEditorSelectedEntityAtom);
@@ -15,12 +14,7 @@ export function EntityView() {
 
 function EntityDetail({ entity }: { entity: EntityRef }) {
   const schemaQuery = useSchema();
-  const mutationPending = useIsEntityMutating(entity);
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["entity", entity.index, entity.generation],
-    queryFn: () => siecsClient.entity(entity),
-    refetchInterval: mutationPending ? false : 1500,
-  });
+  const { data, error, isLoading } = useEntity(entity);
 
   if (isLoading) return <EntityDetailShell entity={entity} loading />;
 

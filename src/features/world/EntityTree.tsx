@@ -1,88 +1,111 @@
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Button, TreeView, createTreeCollection } from "@chakra-ui/react";
 import { Box, ChevronDown, ChevronRight } from "lucide-react";
-import { useEntities } from "../../hooks/useEntities";
 import { useMemo, useState } from "react";
-import { siecsClient, type Entity } from "../../client";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import { worldEditorSelectedEntityAtom, worldEntityTreeRevisionAtom } from "./atom";
+import { siecsClient, type Entity, type EntityRef } from "../../client";
+import { worldEditorSelectedEntityAtom } from "./atom";
+import { entityChildrenQuery, entityKeys, useRootEntities } from "./entityQueries";
 
-type EntityNode = Entity & {
-  id: number;
-  children?: EntityNode[];
-  childrenCount?: number;
-};
+type EntityNode = Entity & { id: string; children?: EntityNode[] };
+
+function entityNodeId(entity: EntityRef) {
+  return `${entity.index}:${entity.generation}`;
+}
 
 function toEntityNode(entity: Entity): EntityNode {
-  return {
-    ...entity,
-    id: entity.index,
-    childrenCount: entity.hasChildren ? 1 : 0,
-  };
+  return { ...entity, id: entityNodeId(entity) };
 }
 
-function withLoadedChildren(
-  loadedChildren: Record<string, EntityNode[]>,
-  node: EntityNode,
-): EntityNode {
-  return {
-    ...node,
-    children: loadedChildren[node.id]?.map((node) => withLoadedChildren(loadedChildren, node)),
-  };
+function buildTree(entities: Entity[], childrenById: Map<string, Entity[]>): EntityNode[] {
+  return entities.map((entity) => {
+    const node = toEntityNode(entity);
+    const children = childrenById.get(node.id);
+    return children ? { ...node, children: buildTree(children, childrenById) } : node;
+  });
 }
 
-function findEntityNode(nodes: EntityNode[], index: number): EntityNode | undefined {
+function findEntityNode(nodes: EntityNode[], id: string): EntityNode | undefined {
   for (const node of nodes) {
-    if (node.index === index) {
-      return node;
-    }
-
-    const child = findEntityNode(node.children || [], index);
-    if (child) {
-      return child;
-    }
+    if (node.id === id) return node;
+    const child = findEntityNode(node.children ?? [], id);
+    if (child) return child;
   }
+}
+
+function entityRefFromNode(node: EntityNode): EntityRef {
+  return { name: node.name, index: node.index, generation: node.generation };
+}
+
+function entityRefFromId(id: string): EntityRef | undefined {
+  const [index, generation] = id.split(":").map(Number);
+  return Number.isInteger(index) && Number.isInteger(generation)
+    ? { name: "", index, generation }
+    : undefined;
 }
 
 export function EntityTree() {
   const queryClient = useQueryClient();
-  const { data: entities = [] } = useEntities();
-
+  const rootsQuery = useRootEntities();
   const selectedEntity = useAtomValue(worldEditorSelectedEntityAtom);
-  const treeRevision = useAtomValue(worldEntityTreeRevisionAtom);
   const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
 
-  const [loadedChildren, setLoadedChildren] = useState<Record<string, EntityNode[]>>({});
-  const [loadedRevision, setLoadedRevision] = useState(treeRevision);
-
-  if (loadedRevision !== treeRevision) {
-    setLoadedRevision(treeRevision);
-    setLoadedChildren({});
-  }
-
-  const root = useMemo(() => {
-    const children = entities
-      .map(toEntityNode)
-      .map((node) => withLoadedChildren(loadedChildren, node));
-
-    return {
-      id: 0,
-      name: "root",
-      index: -1,
-      generation: 0,
-      hasChildren: true,
-      children,
-    } satisfies EntityNode;
-  }, [entities, loadedChildren]);
-
-  const collection = useMemo(() => {
-    return createTreeCollection<EntityNode>({
-      rootNode: root,
-      nodeToValue: (node) => node.id.toString(),
-      nodeToString: (node) => node.name,
-      nodeToChildren: (node) => node.children || [],
+  const cachedChildren = useMemo(() => {
+    const result = new Map<string, Entity[]>();
+    for (const id of expandedIds) {
+      const entity = entityRefFromId(id);
+      const children = entity
+        ? queryClient.getQueryData<Entity[]>(entityKeys.children(entity))
+        : undefined;
+      if (children) result.set(id, children);
+    }
+    return result;
+  }, [expandedIds, queryClient]);
+  const preliminaryNodes = useMemo(
+    () => buildTree(rootsQuery.data ?? [], cachedChildren),
+    [cachedChildren, rootsQuery.data],
+  );
+  const expandedNodes = expandedIds
+    .map((id) => findEntityNode(preliminaryNodes, id))
+    .filter((node): node is EntityNode => Boolean(node));
+  const childrenQueries = useQueries({
+    queries: expandedNodes.map((node) => entityChildrenQuery(node, true)),
+  });
+  const childrenById = useMemo(() => {
+    const result = new Map(cachedChildren);
+    expandedNodes.forEach((node, index) => {
+      const children = childrenQueries[index].data;
+      if (children) result.set(node.id, children);
     });
-  }, [root]);
+    return result;
+  }, [cachedChildren, childrenQueries, expandedNodes]);
+  const nodes = useMemo(
+    () => buildTree(rootsQuery.data ?? [], childrenById),
+    [childrenById, rootsQuery.data],
+  );
+  const root = useMemo(
+    () =>
+      ({
+        id: "root",
+        name: "root",
+        index: -1,
+        generation: 0,
+        hasChildren: true,
+        children: nodes,
+      }) satisfies EntityNode,
+    [nodes],
+  );
+  const collection = useMemo(
+    () =>
+      createTreeCollection<EntityNode>({
+        rootNode: root,
+        nodeToValue: (node) => node.id,
+        nodeToString: (node) => node.name,
+        nodeToChildren: (node) => node.children ?? [],
+      }),
+    [root],
+  );
 
   return (
     <TreeView.Root
@@ -90,33 +113,24 @@ export function EntityTree() {
       rounded="none"
       height="100%"
       overflowY="auto"
-      bg={"bg.panel"}
+      bg="bg.panel"
       p={1}
       lazyMount
-      selectedValue={selectedEntity ? [selectedEntity.index.toString()] : []}
-      onSelectionChange={(selected) => {
-        const index = Number(selected.selectedValue);
-        setSelectedEntity(findEntityNode(root.children || [], index));
-      }}
-      loadChildren={async ({ node }) => {
-        if (node.index < 0) {
-          return node.children || [];
+      expandedValue={expandedIds}
+      selectedValue={selectedEntity ? [entityNodeId(selectedEntity)] : []}
+      onExpandedChange={(details) => {
+        const nextExpandedIds = details.expandedValue;
+        setExpandedIds(nextExpandedIds);
+        for (const id of nextExpandedIds) {
+          if (expandedIds.includes(id)) continue;
+          const node = findEntityNode(nodes, id);
+          if (node) void queryClient.prefetchQuery(entityChildrenQuery(node, true));
         }
-
-        const children = await queryClient.fetchQuery({
-          queryKey: ["entities", node.index, node.generation, "children"],
-          queryFn: async () => {
-            const entities = await siecsClient.entityChildren(node);
-            return entities.map(toEntityNode);
-          },
-        });
-
-        setLoadedChildren((current) => ({
-          ...current,
-          [node.id]: children,
-        }));
-
-        return children;
+      }}
+      onSelectionChange={(details) => {
+        const id = details.selectedValue[0];
+        const node = id ? findEntityNode(nodes, id) : undefined;
+        setSelectedEntity(node ? entityRefFromNode(node) : undefined);
       }}
     >
       <TreeView.Tree gap={1}>
@@ -127,29 +141,19 @@ export function EntityTree() {
               <TreeView.BranchControl
                 my={1}
                 rounded="xs"
-                _hover={{
-                  bg: "bg.emphasized/60",
-                }}
-                _selected={{
-                  bg: "bg.muted",
-                }}
+                _hover={{ bg: "bg.emphasized/60" }}
+                _selected={{ bg: "bg.muted" }}
               >
                 {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
-
                 <TreeView.BranchText fontSize="md">{node.name}</TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
               <TreeView.Item
                 rounded="xs"
-                _hover={{
-                  bg: "bg.emphasized/60",
-                }}
-                _selected={{
-                  bg: "bg.muted",
-                }}
+                _hover={{ bg: "bg.emphasized/60" }}
+                _selected={{ bg: "bg.muted" }}
               >
                 <Box />
-
                 <TreeView.ItemText fontSize="md">{node.name}</TreeView.ItemText>
               </TreeView.Item>
             )
@@ -157,13 +161,18 @@ export function EntityTree() {
         />
       </TreeView.Tree>
       <Button
-        variant={"outline"}
+        variant="outline"
         mx={1}
         onClick={async () => {
-          await siecsClient.createEntity();
-          queryClient.refetchQueries({
-            queryKey: ["entities"],
-          });
+          const entity = await siecsClient.createEntity();
+          queryClient.setQueryData<Entity[]>(entityKeys.roots, (current = []) =>
+            current.some((item) => item.index === entity.index) ? current : [...current, entity],
+          );
+          queryClient.setQueryData<Entity[]>(entityKeys.all, (current = []) =>
+            current.some((item) => item.index === entity.index) ? current : [...current, entity],
+          );
+          void queryClient.invalidateQueries({ queryKey: entityKeys.roots });
+          void queryClient.invalidateQueries({ queryKey: entityKeys.all });
         }}
       >
         New entity
