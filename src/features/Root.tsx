@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useToggle } from "../hooks/useToggle";
 import { useInterval } from "../hooks/useInterval";
 import { siecsClient } from "../client";
+import { SceneActions } from "./world/SceneActions";
 
 function PlayButton() {
   const [state, toggle] = useToggle();
@@ -44,7 +45,10 @@ function Header() {
         <Image ml={3} src="/logo.png" minW={"30px"} h={"30px"} />
         <PlayButton />
       </Flex>
-      <ConnectionStatus />
+      <Flex alignItems="center" gap="2">
+        <SceneActions />
+        <ConnectionStatus />
+      </Flex>
     </Flex>
   );
 }

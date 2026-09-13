@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { siecsClient, type EntityRef } from "../../client";
 
 export const entityKeys = {
@@ -8,6 +8,14 @@ export const entityKeys = {
   children: (entity: EntityRef) => ["entity", entity.index, entity.generation, "children"] as const,
   entity: ["entity"] as const,
 };
+
+export async function refreshWorldQueries(queryClient: QueryClient) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: entityKeys.roots }),
+    queryClient.invalidateQueries({ queryKey: entityKeys.all }),
+    queryClient.invalidateQueries({ queryKey: entityKeys.entity }),
+  ]);
+}
 
 export function isEntityChildrenQuery(queryKey: readonly unknown[]) {
   return queryKey.length === 4 && queryKey[0] === "entity" && queryKey[3] === "children";

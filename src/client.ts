@@ -116,6 +116,45 @@ export class SiecsClient {
     return this.get("/schema");
   }
 
+  async saveScene(): Promise<Blob> {
+    const path = "/scene";
+    const response = await fetch(this.url + path, {
+      method: "GET",
+      headers: {
+        accept: "application/octet-stream",
+      },
+    });
+
+    if (!response.ok) {
+      const serverMessage = await readErrorMessage(response);
+      throw new SiecsError(
+        `GET ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ""}`,
+        response.status,
+      );
+    }
+
+    return response.blob();
+  }
+
+  async loadScene(data: ArrayBuffer | Blob): Promise<void> {
+    const path = "/scene";
+    const response = await fetch(this.url + path, {
+      method: "POST",
+      headers: {
+        "content-type": "application/octet-stream",
+      },
+      body: data,
+    });
+
+    if (!response.ok) {
+      const serverMessage = await readErrorMessage(response);
+      throw new SiecsError(
+        `POST ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ""}`,
+        response.status,
+      );
+    }
+  }
+
   async entity(entity: EntityLike): Promise<EntityDetail> {
     return this.get(`/entities/${entityId(entity)}`);
   }

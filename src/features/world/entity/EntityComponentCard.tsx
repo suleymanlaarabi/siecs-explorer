@@ -15,7 +15,6 @@ export function EntityComponentCard({
 }) {
   const definition = schema?.components.find((item) => item.id === component.id);
   const remove = useRemoveComponent(entity);
-
   return (
     <Box borderWidth="1px" rounded="md" overflow="hidden">
       <HStack justify="space-between" gap="2" minH="8" px="3" py="1" bg="bg.subtle">
@@ -35,7 +34,7 @@ export function EntityComponentCard({
           onConfirm={() => remove.mutateAsync(component.id)}
         />
       </HStack>
-      {definition && schema ? (
+      {definition?.fields.length && schema ? (
         <Box px="3" py="2" borderTopWidth="1px">
           <EntityComponentEditor
             entity={entity}

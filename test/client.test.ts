@@ -89,3 +89,34 @@ describe("SiecsClient entity mutations", () => {
     }
   });
 });
+
+describe("SiecsClient scene binary operations", () => {
+  test("downloads the scene as an untouched binary blob", async () => {
+    const bytes = new Uint8Array([0x00, 0xff, 0x01, 0x7f]);
+    const fetchMock = mockFetch(
+      new Response(new Blob([bytes], { type: "application/octet-stream" }), { status: 200 }),
+    );
+
+    const blob = await new SiecsClient().saveScene();
+
+    expect(new Uint8Array(await blob.arrayBuffer())).toEqual(bytes);
+    expect(fetchMock).toHaveBeenCalledWith("http://127.0.0.1:4040/scene", {
+      method: "GET",
+      headers: { accept: "application/octet-stream" },
+    });
+  });
+
+  test("uploads the exact binary body and accepts 204", async () => {
+    const data = new Blob([new Uint8Array([0x00, 0x02, 0xfe])], {
+      type: "application/octet-stream",
+    });
+    const fetchMock = mockFetch(new Response(null, { status: 204 }));
+
+    await expect(new SiecsClient().loadScene(data)).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledWith("http://127.0.0.1:4040/scene", {
+      method: "POST",
+      headers: { "content-type": "application/octet-stream" },
+      body: data,
+    });
+  });
+});
