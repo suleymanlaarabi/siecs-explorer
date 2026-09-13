@@ -1,9 +1,9 @@
 import { atom } from "jotai";
-import type { ComponentDef, Entity, Schema } from "../../client";
+import type { ComponentDef, EntityRef, Schema } from "../../client";
 
 export const worldEditorStateAtom = atom<"entity" | "component">("entity");
 
-export const worldEditorSelectedEntityAtom = atom<Entity | undefined>(undefined);
+export const worldEditorSelectedEntityAtom = atom<EntityRef | undefined>(undefined);
 
 type ComponentDetail = { schema: Schema; component: ComponentDef };
 

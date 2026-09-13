@@ -4,7 +4,7 @@ import { useEntities } from "../../hooks/useEntities";
 import { useMemo, useState } from "react";
 import { siecsClient, type Entity } from "../../client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { worldEditorSelectedEntityAtom } from "./atom";
 
 type EntityNode = Entity & {
@@ -27,16 +27,11 @@ function withLoadedChildren(
 ): EntityNode {
   return {
     ...node,
-    children: loadedChildren[node.id]?.map((node) =>
-      withLoadedChildren(loadedChildren, node),
-    ),
+    children: loadedChildren[node.id]?.map((node) => withLoadedChildren(loadedChildren, node)),
   };
 }
 
-function findEntityNode(
-  nodes: EntityNode[],
-  index: number,
-): EntityNode | undefined {
+function findEntityNode(nodes: EntityNode[], index: number): EntityNode | undefined {
   for (const node of nodes) {
     if (node.index === index) {
       return node;
@@ -53,11 +48,10 @@ export function EntityTree() {
   const queryClient = useQueryClient();
   const { data: entities = [] } = useEntities();
 
+  const selectedEntity = useAtomValue(worldEditorSelectedEntityAtom);
   const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
 
-  const [loadedChildren, setLoadedChildren] = useState<
-    Record<string, EntityNode[]>
-  >({});
+  const [loadedChildren, setLoadedChildren] = useState<Record<string, EntityNode[]>>({});
 
   const root = useMemo(() => {
     const children = entities
@@ -92,6 +86,7 @@ export function EntityTree() {
       bg={"bg.panel"}
       p={1}
       lazyMount
+      selectedValue={selectedEntity ? [selectedEntity.index.toString()] : []}
       onSelectionChange={(selected) => {
         const index = Number(selected.selectedValue);
         setSelectedEntity(findEntityNode(root.children || [], index));
@@ -134,9 +129,7 @@ export function EntityTree() {
               >
                 {nodeState.expanded ? <ChevronDown /> : <ChevronRight />}
 
-                <TreeView.BranchText fontSize="md">
-                  {node.name}
-                </TreeView.BranchText>
+                <TreeView.BranchText fontSize="md">{node.name}</TreeView.BranchText>
               </TreeView.BranchControl>
             ) : (
               <TreeView.Item
@@ -162,8 +155,8 @@ export function EntityTree() {
         onClick={async () => {
           await siecsClient.createEntity();
           queryClient.refetchQueries({
-            queryKey: ["entities"]
-          })
+            queryKey: ["entities"],
+          });
         }}
       >
         New entity

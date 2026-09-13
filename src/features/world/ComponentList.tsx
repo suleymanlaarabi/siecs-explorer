@@ -1,11 +1,11 @@
 import { createListCollection, Listbox } from "@chakra-ui/react";
-import { useComponents } from "../../hooks/useComponents";
+import { useSchema } from "../../hooks/useSchema";
 import { useMemo } from "react";
 import { useSetAtom } from "jotai";
 import { worldEditorSelectedComponentAtom } from "./atom";
 
 export function ComponentList() {
-  const { data } = useComponents();
+  const { data } = useSchema();
 
   const setSelectedComponent = useSetAtom(worldEditorSelectedComponentAtom);
 
@@ -35,12 +35,7 @@ export function ComponentList() {
       width="full"
       height={"full"}
     >
-      <Listbox.Content
-        rounded={"none"}
-        border={"none"}
-        height="full"
-        maxH="none"
-      >
+      <Listbox.Content rounded={"none"} border={"none"} height="full" maxH="none">
         {collections.items.map((component) => (
           <Listbox.Item
             item={component}
@@ -54,9 +49,7 @@ export function ComponentList() {
               bg: "bg.muted",
             }}
           >
-            <Listbox.ItemText fontSize="md">
-              {component.name}
-            </Listbox.ItemText>
+            <Listbox.ItemText fontSize="md">{component.name}</Listbox.ItemText>
           </Listbox.Item>
         ))}
       </Listbox.Content>

@@ -1,10 +1,19 @@
 import { QueryClient } from "@tanstack/react-query";
 
-export type Entity = {
+export type EntityRef = {
   name: string;
   index: number;
   generation: number;
+};
+
+export type Entity = EntityRef & {
   hasChildren: boolean;
+};
+
+export type EntityRelation = {
+  id: number;
+  name: string;
+  target: EntityRef;
 };
 
 export type EntityComponent = {
@@ -13,20 +22,13 @@ export type EntityComponent = {
   value: unknown;
 };
 
-export type EntityDetail = Entity & {
-  parent?: Entity;
+export type EntityDetail = EntityRef & {
   children: Entity[];
   components: EntityComponent[];
-  isA?: EntityDetail;
+  relations: EntityRelation[];
 };
 
-export type EntityLike =
-  | number
-  | Entity
-  | {
-      index: number;
-      generation: number;
-    };
+export type EntityLike = number | EntityRef;
 
 export type SiecsClientOptions = {
   host?: string;
@@ -41,13 +43,7 @@ export class SiecsError extends Error {
   }
 }
 
-export type EditorType =
-  | "boolean"
-  | "number"
-  | "entity"
-  | "string"
-  | "object"
-  | "unsupported";
+export type EditorType = "boolean" | "number" | "entity" | "string" | "object" | "unsupported";
 
 export type TypeDef = {
   id: number;
@@ -68,8 +64,17 @@ export type ComponentDef = {
   fields: ComponentField[];
 };
 
+export type RelationDef = {
+  id: number;
+  name: string;
+  storage: number;
+  onDeleteTarget: number;
+  acyclic: boolean;
+};
+
 export type Schema = {
   components: ComponentDef[];
+  relations: RelationDef[];
   types: TypeDef[];
 };
 
@@ -136,11 +141,7 @@ export class SiecsClient {
     return response.json() as Promise<T>;
   }
 
-  private async request<T>(
-    path: string,
-    method: string,
-    data: unknown = undefined,
-  ): Promise<T> {
+  private async request<T>(path: string, method: string, data: unknown = undefined): Promise<T> {
     const response = await fetch(this.url + path, {
       headers: {
         accept: "application/json",

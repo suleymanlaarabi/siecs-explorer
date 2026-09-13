@@ -1,19 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Checkbox,
-  Field,
-  Input,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Checkbox, Field, Input, Text, VStack } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   siecsClient,
   type ComponentDef,
   type EditorType,
-  type Entity,
   type EntityComponent,
   type EntityDetail,
+  type EntityRef,
   type Schema,
   type TypeDef,
 } from "../../client";
@@ -29,7 +23,7 @@ export function EntityComponentEditor({
   schema,
   entityComponent,
 }: {
-  entity: Entity;
+  entity: EntityRef;
   component: ComponentDef;
   schema: Schema;
   entityComponent: EntityComponent;
@@ -72,9 +66,7 @@ export function EntityComponentEditor({
         current
           ? {
               ...current,
-              components: current.components.map((item) =>
-                item.id === saved.id ? saved : item,
-              ),
+              components: current.components.map((item) => (item.id === saved.id ? saved : item)),
             }
           : current,
       );
@@ -123,18 +115,13 @@ export function EntityComponentEditor({
 
     setErrors((current) => removeKey(current, key));
     const next =
-      component.fields.length === 0
-        ? parsed.value
-        : updateObjectField(draft, key, parsed.value);
+      component.fields.length === 0 ? parsed.value : updateObjectField(draft, key, parsed.value);
     setDraft(next);
     scheduleSave(next);
   };
 
   const updateBoolean = (key: string, value: boolean) => {
-    const next =
-      component.fields.length === 0
-        ? value
-        : updateObjectField(draft, key, value);
+    const next = component.fields.length === 0 ? value : updateObjectField(draft, key, value);
     setErrors((current) => removeKey(current, key));
     setDraft(next);
     scheduleSave(next);
@@ -223,7 +210,9 @@ function EditorField({
   return (
     <Field.Root orientation={"horizontal"} invalid={Boolean(error)}>
       <Field.Label>{label}</Field.Label>
-      <Text textStyle="xs" color="fg.muted">{type.name}</Text>
+      <Text textStyle="xs" color="fg.muted">
+        {type.name}
+      </Text>
       <Input
         ml={1}
         type={type.editor === "number" || type.editor === "entity" ? "number" : "text"}
@@ -253,11 +242,7 @@ function SaveStatus({ state, error }: { state: SaveState; error?: string }) {
   );
 }
 
-function createRawValues(
-  component: ComponentDef,
-  value: unknown,
-  typeById: Map<number, TypeDef>,
-) {
+function createRawValues(component: ComponentDef, value: unknown, typeById: Map<number, TypeDef>) {
   if (component.fields.length === 0) {
     const type = typeById.get(component.type);
     return type ? { value: formatEditorValue(type.editor, value) } : {};

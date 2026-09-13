@@ -8,10 +8,7 @@ type ComponentInspectorProps = {
   componentId: number;
 };
 
-export function ComponentInspector({
-  schema,
-  componentId,
-}: ComponentInspectorProps) {
+export function ComponentInspector({ schema, componentId }: ComponentInspectorProps) {
   const component = schema.components.find((c) => c.id === componentId)!;
 
   const typeById = new Map(schema.types.map((type) => [type.id, type]));
@@ -23,9 +20,7 @@ export function ComponentInspector({
           <HStack justify="space-between">
             <Heading size="md">{component.name}</Heading>
 
-            <Badge variant="surface">
-              {component.isRelation ? "Relation" : "Component"}
-            </Badge>
+            <Badge variant="surface">{component.isRelation ? "Relation" : "Component"}</Badge>
           </HStack>
 
           {component.fields.length > 0 ? (

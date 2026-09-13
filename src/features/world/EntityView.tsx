@@ -1,9 +1,9 @@
 import {
   Badge,
   Box,
+  Button,
   Card,
   Code,
-  Collapsible,
   DataList,
   EmptyState,
   Heading,
@@ -14,18 +14,18 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { worldEditorSelectedEntityAtom } from "./atom";
 import { useQuery } from "@tanstack/react-query";
-import { useComponents } from "../../hooks/useComponents";
+import { useSchema } from "../../hooks/useSchema";
 import {
   siecsClient,
-  type Entity,
   type EntityComponent,
   type EntityDetail,
+  type EntityRef,
+  type EntityRelation,
   type Schema,
 } from "../../client";
-import { ChevronRight } from "lucide-react";
 import { EntityComponentEditor } from "./ComponentEditor";
 
 export function EntityView() {
@@ -38,8 +38,8 @@ export function EntityView() {
   return <EntityDetail entity={entity} />;
 }
 
-function EntityDetail({ entity }: { entity: Entity }) {
-  const schemaQuery = useComponents();
+function EntityDetail({ entity }: { entity: EntityRef }) {
+  const schemaQuery = useSchema();
   const { data, error, isLoading } = useQuery({
     queryKey: ["entity", entity.index, entity.generation],
     queryFn: () => siecsClient.entity(entity),
@@ -72,69 +72,12 @@ function EntityDetail({ entity }: { entity: Entity }) {
   return <WithDataEntityDetail entity={data} schema={schemaQuery.data} />;
 }
 
-function WithDataEntityDetail({
-  entity,
-  schema,
-  detail = true,
-}: {
-  entity: EntityDetail;
-  schema?: Schema;
-  detail?: boolean;
-}) {
-  if (detail) {
-    return (
-      <EntityDetailShell entity={entity}>
-        <EntityComponents entity={entity} schema={schema} components={entity.components} />
-        {entity.isA ? (
-          <Collapsible.Root lazyMount>
-            <Collapsible.Trigger
-              paddingY="3"
-              display="flex"
-              gap="2"
-              alignItems="center"
-            >
-              <Collapsible.Indicator
-                transition="transform 0.2s"
-                _open={{ transform: "rotate(90deg)" }}
-              >
-                <ChevronRight />
-              </Collapsible.Indicator>
-              Inheritance
-            </Collapsible.Trigger>
-            <Collapsible.Content>
-              <WithDataEntityDetail entity={entity.isA} schema={schema} detail={false} />
-            </Collapsible.Content>
-          </Collapsible.Root>
-        ) : null}
-      </EntityDetailShell>
-    );
-  }
+function WithDataEntityDetail({ entity, schema }: { entity: EntityDetail; schema?: Schema }) {
   return (
-    <VStack align="stretch" gap="6">
-      <Heading wordBreak="break-word">{entity.name}</Heading>
+    <EntityDetailShell entity={entity}>
+      <EntityRelations relations={entity.relations} schema={schema} />
       <EntityComponents entity={entity} schema={schema} components={entity.components} />
-      {entity.isA ? (
-        <Collapsible.Root lazyMount>
-          <Collapsible.Trigger
-            paddingY="3"
-            display="flex"
-            gap="2"
-            alignItems="center"
-          >
-            <Collapsible.Indicator
-              transition="transform 0.2s"
-              _open={{ transform: "rotate(90deg)" }}
-            >
-              <ChevronRight />
-            </Collapsible.Indicator>
-            Inheritance
-          </Collapsible.Trigger>
-          <Collapsible.Content>
-            <WithDataEntityDetail entity={entity.isA} schema={schema} detail={false} />
-          </Collapsible.Content>
-        </Collapsible.Root>
-      ) : null}
-    </VStack>
+    </EntityDetailShell>
   );
 }
 
@@ -143,10 +86,12 @@ function EntityDetailShell({
   loading,
   children,
 }: {
-  entity: Entity;
+  entity: EntityRef;
   loading?: boolean;
   children?: React.ReactNode;
 }) {
+  const hasChildren = "hasChildren" in entity ? entity.hasChildren === true : undefined;
+
   return (
     <Card.Root variant="outline" rounded="none" border="none" h="full">
       <Card.Body overflow="auto">
@@ -159,12 +104,11 @@ function EntityDetailShell({
               </Text>
             </VStack>
 
-            <Badge
-              variant="surface"
-              colorPalette={entity.hasChildren ? "green" : "gray"}
-            >
-              {entity.hasChildren ? "Has children" : "Leaf"}
-            </Badge>
+            {hasChildren !== undefined ? (
+              <Badge variant="surface" colorPalette={hasChildren ? "green" : "gray"}>
+                {hasChildren ? "Has children" : "Leaf"}
+              </Badge>
+            ) : null}
           </HStack>
 
           {loading ? (
@@ -182,6 +126,56 @@ function EntityDetailShell({
   );
 }
 
+function EntityRelations({ relations, schema }: { relations: EntityRelation[]; schema?: Schema }) {
+  return (
+    <Section title="Relations" aside={`${relations.length}`}>
+      {relations.length > 0 ? (
+        <VStack align="stretch" gap="3">
+          {relations.map((relation) => (
+            <RelationBlock key={relation.id} relation={relation} schema={schema} />
+          ))}
+        </VStack>
+      ) : (
+        <MutedValue>No relations</MutedValue>
+      )}
+    </Section>
+  );
+}
+
+function RelationBlock({ relation, schema }: { relation: EntityRelation; schema?: Schema }) {
+  const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
+  const definition = schema?.relations.find((item) => item.id === relation.id);
+
+  return (
+    <Box borderWidth="1px" rounded="md" overflow="hidden">
+      <HStack justify="space-between" gap="3" px="3" py="2" bg="bg.subtle" borderBottomWidth="1px">
+        <Text fontWeight="medium" wordBreak="break-word">
+          {definition?.name ?? relation.name}
+        </Text>
+        <Badge variant="outline">#{relation.id}</Badge>
+      </HStack>
+
+      <HStack justify="space-between" gap="3" p="3">
+        <VStack align="start" gap="0" minW="0">
+          <Text wordBreak="break-word">{relation.target.name}</Text>
+          <Text textStyle="sm" color="fg.muted">
+            Entity #{relation.target.index}
+          </Text>
+        </VStack>
+
+        <Button
+          size="sm"
+          variant="outline"
+          flex="none"
+          onClick={() => setSelectedEntity(relation.target)}
+        >
+          Open
+        </Button>
+      </HStack>
+    </Box>
+  );
+}
+
 function EntityComponents({
   entity,
   schema,
@@ -196,7 +190,12 @@ function EntityComponents({
       {components.length > 0 ? (
         <VStack align="stretch" gap="3">
           {components.map((component) => (
-            <ComponentBlock key={component.id} entity={entity} schema={schema} component={component} />
+            <ComponentBlock
+              key={component.id}
+              entity={entity}
+              schema={schema}
+              component={component}
+            />
           ))}
         </VStack>
       ) : (
@@ -285,12 +284,7 @@ function ComponentValue({ value }: { value: unknown }) {
       <VStack align="stretch" gap="2">
         {value.map((item, index) => (
           <HStack key={index} align="start" gap="3">
-            <Badge
-              variant="surface"
-              colorPalette="gray"
-              minW="8"
-              justifyContent="center"
-            >
+            <Badge variant="surface" colorPalette="gray" minW="8" justifyContent="center">
               {index}
             </Badge>
             <Box flex="1" minW="0">
