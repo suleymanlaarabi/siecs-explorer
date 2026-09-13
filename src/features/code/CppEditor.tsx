@@ -117,8 +117,48 @@ async function stopLanguageClient(client: MonacoLanguageClient | undefined) {
   if (client?.isRunning()) await client.stop();
 }
 
-function completionScope(linePrefix: string) {
-  return /((?:[A-Za-z_]\w*(?:::|\.|->))+)(?:[A-Za-z_]\w*)?$/.exec(linePrefix)?.[1];
+type ClangdFileStatus = { uri: string; state: string };
+
+function waitForClangdIdle(client: MonacoLanguageClient, uri: string) {
+  let settled = false;
+  let timeoutId: number | undefined;
+  let rejectWait: (reason?: unknown) => void = () => undefined;
+  let disposeNotification: (() => void) | undefined;
+
+  const cleanup = () => {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    disposeNotification?.();
+  };
+
+  const promise = new Promise<void>((resolve, reject) => {
+    rejectWait = reject;
+    const disposable = client.onNotification(
+      'textDocument/clangd.fileStatus',
+      (fileStatus: ClangdFileStatus) => {
+        if (fileStatus.uri !== uri || fileStatus.state.toLowerCase() !== 'idle') return;
+        settled = true;
+        cleanup();
+        resolve();
+      },
+    );
+    disposeNotification = () => disposable.dispose();
+    timeoutId = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('clangd did not finish preparing the C++ file within 30 seconds.'));
+    }, 30_000);
+  });
+
+  return {
+    promise,
+    cancel: () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      rejectWait(new Error('clangd startup was cancelled.'));
+    },
+  };
 }
 
 export function CppEditor() {
@@ -127,6 +167,7 @@ export function CppEditor() {
   const modelRef = useRef<monaco.editor.ITextModel | undefined>(undefined);
   const clientRef = useRef<MonacoLanguageClient | undefined>(undefined);
   const [editorReady, setEditorReady] = useState(false);
+  const [languageReady, setLanguageReady] = useState(false);
   const [status, setStatus] = useState<LspStatus>({
     tone: 'warning',
     message: 'Starting C++ editor…',
@@ -172,9 +213,10 @@ export function CppEditor() {
           suggest: { showWords: true, showSnippets: true },
           wordBasedSuggestions: true,
           inlayHints: { enabled: 'off' },
-          "links": false,
+          links: false,
           'semanticHighlighting.enabled': true,
           minimap: { enabled: false },
+          readOnly: true,
         });
         editorRef.current = editor;
         modelRef.current = model;
@@ -203,8 +245,11 @@ export function CppEditor() {
   }, [setCppCode]);
 
   useEffect(() => {
-    editorRef.current?.updateOptions({ theme: colorMode === 'dark' ? 'zed-dark' : 'vs' });
-  }, [colorMode, editorReady]);
+    editorRef.current?.updateOptions({
+      theme: colorMode === 'dark' ? 'zed-dark' : 'vs',
+      readOnly: !languageReady,
+    });
+  }, [colorMode, editorReady, languageReady]);
 
   useEffect(() => {
     const model = modelRef.current;
@@ -212,14 +257,18 @@ export function CppEditor() {
     let cancelled = false;
     let worker: Worker | undefined;
     let port: MessagePort | undefined;
-    const completionCache = new Map<string, { expiresAt: number; result: unknown }>();
+    let idleWait: ReturnType<typeof waitForClangdIdle> | undefined;
     const previousClient = clientRef.current;
     clientRef.current = undefined;
+    setLanguageReady(false);
 
     const startLanguageClient = async () => {
       setStatus({ tone: 'warning', message: 'Loading C++ headers…' });
       const loadedHeaders = await loadWorkspaceHeaders(headerSources);
       if (cancelled) return;
+      if (loadedHeaders.failures.length > 0) {
+        throw new Error(loadedHeaders.failures.map((failure) => failure.message).join('\n'));
+      }
 
       setStatus({ tone: 'warning', message: 'Starting C++ language service…' });
       worker = new Worker(new URL('./clangd.worker.ts', import.meta.url), { type: 'module' });
@@ -238,25 +287,7 @@ export function CppEditor() {
         name: 'clangd',
         clientOptions: {
           documentSelector: ['cpp'],
-          middleware: {
-            provideCompletionItem: async (document, position, context, token, next) => {
-              const linePrefix = document.lineAt(position.line).text.slice(0, position.character);
-              const scope = completionScope(linePrefix);
-              if (!scope) return next(document, position, context, token);
-
-              const cacheKey = `${document.uri.toString()}\u0000${scope}`;
-              const cached = completionCache.get(cacheKey);
-              if (cached && cached.expiresAt > performance.now()) {
-                return cached.result as Awaited<ReturnType<typeof next>>;
-              }
-
-              const result = await next(document, position, context, token);
-              if (!token.isCancellationRequested && result) {
-                completionCache.set(cacheKey, { expiresAt: performance.now() + 10_000, result });
-              }
-              return result;
-            },
-          },
+          initializationOptions: { clangdFileStatus: true },
           errorHandler: {
             error: () => ({ action: ErrorAction.Continue }),
             closed: () => ({ action: CloseAction.DoNotRestart }),
@@ -270,16 +301,18 @@ export function CppEditor() {
         },
       });
       clientRef.current = client;
+      idleWait = waitForClangdIdle(client, model.uri.toString());
       await client.start();
+      if (cancelled) {
+        idleWait.cancel();
+        await stopLanguageClient(client);
+        return;
+      }
+      setStatus({ tone: 'warning', message: 'Preparing C++ completion…' });
+      await idleWait.promise;
       if (cancelled) return;
-      setStatus(
-        loadedHeaders.failures.length > 0
-          ? {
-              tone: 'warning',
-              message: `${loadedHeaders.failures.length} header source(s) could not be loaded.`,
-            }
-          : { tone: 'success', message: 'C++23 language service ready.' },
-      );
+      setLanguageReady(true);
+      setStatus({ tone: 'success', message: 'C++23 language service ready.' });
     };
 
     void (async () => {
@@ -287,7 +320,12 @@ export function CppEditor() {
         await stopLanguageClient(previousClient);
         await startLanguageClient();
       } catch (error: unknown) {
+        idleWait?.cancel();
         if (!cancelled) {
+          void stopLanguageClient(clientRef.current);
+          clientRef.current = undefined;
+          port?.close();
+          worker?.terminate();
           setStatus({
             tone: 'error',
             message:
@@ -301,12 +339,16 @@ export function CppEditor() {
 
     return () => {
       cancelled = true;
+      idleWait?.cancel();
+      setLanguageReady(false);
       void stopLanguageClient(clientRef.current);
       clientRef.current = undefined;
       port?.close();
       worker?.terminate();
     };
   }, [editorReady, headerSources]);
+
+  const displayedStatus = languageReady ? (runStatus ?? status) : status;
 
   return (
     <Box position="relative" boxSize="full" minH={0} overflow="hidden">
@@ -317,7 +359,30 @@ export function CppEditor() {
         py={6}
         boxSize="full"
         minH={0}
+        visibility={languageReady ? 'visible' : 'hidden'}
+        pointerEvents={languageReady ? 'auto' : 'none'}
+        aria-hidden={!languageReady}
       />
+      {!languageReady ? (
+        <Box
+          position="absolute"
+          inset="0"
+          zIndex="2"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          gap="3"
+          bg={colorMode === 'dark' ? '#111111' : '#ffffff'}
+          role={status.tone === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {status.tone === 'warning' ? <Spinner size="xl" /> : null}
+          <Text textAlign="center" whiteSpace="pre-wrap" color={`fg.${status.tone}`}>
+            {status.message}
+          </Text>
+        </Box>
+      ) : null}
       <IconButton
         position="absolute"
         variant="outline"
@@ -326,30 +391,32 @@ export function CppEditor() {
         zIndex="1"
         size="sm"
         title="Compile and run C++ module"
-        disabled={runPending}
+        disabled={!languageReady || runPending}
         onClick={() => void run()}
       >
         {runPending ? <Spinner size="sm" /> : <Play />}
       </IconButton>
-      <Text
-        position="absolute"
-        right="3"
-        bottom="2"
-        px="2"
-        py="2"
-        maxW="70%"
-        maxH="40%"
-        overflow="auto"
-        whiteSpace="pre-wrap"
-        rounded="sm"
-        bg="bg.panel"
-        borderWidth="1px"
-        textStyle="xs"
-        color={`fg.${(runStatus ?? status).tone}`}
-        aria-live="polite"
-      >
-        {(runStatus ?? status).message}
-      </Text>
+      {languageReady ? (
+        <Text
+          position="absolute"
+          right="3"
+          bottom="2"
+          px="2"
+          py="2"
+          maxW="70%"
+          maxH="40%"
+          overflow="auto"
+          whiteSpace="pre-wrap"
+          rounded="sm"
+          bg="bg.panel"
+          borderWidth="1px"
+          textStyle="xs"
+          color={`fg.${displayedStatus.tone}`}
+          aria-live="polite"
+        >
+          {displayedStatus.message}
+        </Text>
+      ) : null}
     </Box>
   );
 }
