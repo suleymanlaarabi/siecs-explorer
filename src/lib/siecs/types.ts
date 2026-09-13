@@ -18,6 +18,13 @@ export type EntityDetail = EntityRef & {
 
 export type EntityLike = number | EntityRef;
 
+export type LoadedModule = {
+  id: number;
+  name: string;
+  enabled: boolean;
+  replaced: number;
+};
+
 export type SiecsClientOptions = {
   host?: string;
   port?: number;

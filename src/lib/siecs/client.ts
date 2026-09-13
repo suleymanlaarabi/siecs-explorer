@@ -6,6 +6,7 @@ import type {
   EntityDetail,
   EntityLike,
   EntityRelation,
+  LoadedModule,
   Schema,
   SiecsClientOptions,
 } from './types';
@@ -48,6 +49,10 @@ export class SiecsClient {
 
   async loadScene(data: ArrayBuffer | Blob): Promise<void> {
     await this.request('/scene', 'POST', data, 'empty', 'application/octet-stream');
+  }
+
+  loadModule(data: ArrayBuffer | Blob): Promise<LoadedModule> {
+    return this.request('/modules', 'POST', data, 'json', 'application/octet-stream');
   }
 
   entity(entity: EntityLike): Promise<EntityDetail> {
@@ -142,6 +147,7 @@ export type {
   EntityLike,
   EntityRef,
   EntityRelation,
+  LoadedModule,
   Schema,
   SiecsClientOptions,
 } from './types';

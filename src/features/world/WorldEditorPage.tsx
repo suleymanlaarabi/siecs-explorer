@@ -1,4 +1,5 @@
-import { Center, Splitter } from '@chakra-ui/react';
+import { Splitter } from '@chakra-ui/react';
+import { CppEditor } from '../code/CppEditor';
 import { WorldEditorPaneLeft } from './WorldEditorPaneLeft';
 import { WorldEditorPaneRight } from './WorldEditorPaneRight';
 
@@ -16,9 +17,7 @@ export function WorldEditorPage() {
       </Splitter.Panel>
       <Splitter.ResizeTrigger id="a:b" />
       <Splitter.Panel id="b">
-        <Center boxSize="full" textStyle="2xl">
-          B
-        </Center>
+        <CppEditor />
       </Splitter.Panel>
       <Splitter.ResizeTrigger id="b:c" />
 

@@ -1,5 +1,20 @@
 # React + TypeScript + Vite
 
+## C++ editor assets
+
+The central panel hosts a browser-only C++23 editor backed by Monaco and clangd WASM. The checked-in
+`public/clangd/` bundle is a Release clangd 22.1.8 build for Emscripten, with the C++ sysroot embedded
+in the WASM module. If you replace it, provide a compatible `clangd.js`/`clangd.wasm` pair and the
+sysroot expected by that bundle.
+When the sysroot is not embedded in the Emscripten module, place a `sysroot.manifest.json` beside it:
+
+```json
+{"files":[{"path":"/usr/include/c++/v1/vector","url":"/clangd/sysroot/usr/include/c++/v1/vector"}]}
+```
+The application must be served with `Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: require-corp` in production too. Header URLs configured from the
+`Headers` dialog must allow browser CORS requests.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

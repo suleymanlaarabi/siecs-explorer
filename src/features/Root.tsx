@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { useToggle } from '../hooks/useToggle';
 import { useHealthQuery } from './world/api/healthQueries';
 import { SceneActions } from './world/SceneActions';
+import { CppHeadersDialog } from './code/CppHeadersDialog';
 
 function PlayButton() {
   const [state, toggle] = useToggle();
@@ -36,6 +37,7 @@ function Header() {
         <SceneActions />
       </Flex>
       <Flex alignItems="center" gap="2">
+        <CppHeadersDialog />
         <ConnectionStatus />
       </Flex>
     </Flex>
