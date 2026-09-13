@@ -37,9 +37,12 @@ export type SiecsClientOptions = {
 };
 
 export class SiecsError extends Error {
-  constructor(message: string) {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "SiecsError";
+    this.status = status;
   }
 }
 
@@ -127,6 +130,35 @@ export class SiecsClient {
     });
   }
 
+  async addComponent(
+    entity: EntityLike,
+    componentId: number,
+    value?: unknown,
+  ): Promise<EntityComponent> {
+    return this.post<EntityComponent>(
+      `/entities/${entityId(entity)}/components/${componentId}`,
+      value === undefined ? {} : { value },
+    );
+  }
+
+  async removeComponent(entity: EntityLike, componentId: number): Promise<void> {
+    return this.delete(`/entities/${entityId(entity)}/components/${componentId}`);
+  }
+
+  async setRelation(
+    entity: EntityLike,
+    relationId: number,
+    target: EntityLike,
+  ): Promise<EntityRelation> {
+    return this.put<EntityRelation>(`/entities/${entityId(entity)}/relations/${relationId}`, {
+      target: entityId(target),
+    });
+  }
+
+  async removeRelation(entity: EntityLike, relationId: number): Promise<void> {
+    return this.delete(`/entities/${entityId(entity)}/relations/${relationId}`);
+  }
+
   private async get<T>(path: string): Promise<T> {
     const response = await fetch(this.url + path, {
       headers: {
@@ -152,9 +184,14 @@ export class SiecsClient {
     });
 
     if (!response.ok) {
-      throw new SiecsError(`${method} ${path} failed: ${response.status}`);
+      const serverMessage = await readErrorMessage(response);
+      throw new SiecsError(
+        `${method} ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ""}`,
+        response.status,
+      );
     }
 
+    if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
   }
 
@@ -163,6 +200,21 @@ export class SiecsClient {
   }
   private async put<T>(path: string, data: unknown = undefined): Promise<T> {
     return this.request(path, "PUT", data);
+  }
+  private async delete<T = void>(path: string): Promise<T> {
+    return this.request(path, "DELETE");
+  }
+}
+
+async function readErrorMessage(response: Response) {
+  const text = await response.text();
+  if (!text) return "";
+  try {
+    const body = JSON.parse(text) as { message?: unknown; error?: unknown };
+    const message = body.message ?? body.error;
+    return typeof message === "string" ? message : text;
+  } catch {
+    return text;
   }
 }
 

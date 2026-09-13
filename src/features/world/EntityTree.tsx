@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { siecsClient, type Entity } from "../../client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAtomValue, useSetAtom } from "jotai";
-import { worldEditorSelectedEntityAtom } from "./atom";
+import { worldEditorSelectedEntityAtom, worldEntityTreeRevisionAtom } from "./atom";
 
 type EntityNode = Entity & {
   id: number;
@@ -49,9 +49,16 @@ export function EntityTree() {
   const { data: entities = [] } = useEntities();
 
   const selectedEntity = useAtomValue(worldEditorSelectedEntityAtom);
+  const treeRevision = useAtomValue(worldEntityTreeRevisionAtom);
   const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
 
   const [loadedChildren, setLoadedChildren] = useState<Record<string, EntityNode[]>>({});
+  const [loadedRevision, setLoadedRevision] = useState(treeRevision);
+
+  if (loadedRevision !== treeRevision) {
+    setLoadedRevision(treeRevision);
+    setLoadedChildren({});
+  }
 
   const root = useMemo(() => {
     const children = entities

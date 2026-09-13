@@ -14,6 +14,8 @@ export const worldEditorSelectedEntityAtom = atom<EntityRef | undefined>(
   undefined,
 );
 
+export const worldEntityTreeRevisionAtom = atom(0);
+
 type ComponentDetail = { schema: Schema; component: ComponentDef };
 
 export const worldEditorSelectedComponentAtom = atom<

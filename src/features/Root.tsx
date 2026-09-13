@@ -24,7 +24,7 @@ function ConnectionStatus() {
         toggle();
       }
     },
-    1000,
+    2000,
     {
       immediate: true,
     },

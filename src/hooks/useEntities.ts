@@ -5,7 +5,7 @@ export function useEntities() {
   const query = useQuery({
     queryKey: ["entities"],
     queryFn: () => siecsClient.entities(),
-    refetchInterval: 2500,
+    refetchInterval: 3500,
   });
 
   return query;

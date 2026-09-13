@@ -1,18 +1,18 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Checkbox, Field, Input, Text, VStack } from "@chakra-ui/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Checkbox, Field, HStack, Input, Spinner, Text, Textarea, VStack } from "@chakra-ui/react";
+import { Check, CircleAlert } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  siecsClient,
   type ComponentDef,
   type EditorType,
   type EntityComponent,
-  type EntityDetail,
   type EntityRef,
   type Schema,
   type TypeDef,
 } from "../../client";
+import { EntityPicker } from "./EntityPicker";
+import { useSetComponent } from "./hooks/useEntityMutations";
 
-const COMPONENT_SAVE_DEBOUNCE_MS = 300;
+const COMPONENT_SAVE_DEBOUNCE_MS = 600;
 
 type SaveState = "idle" | "pending" | "saving" | "saved" | "error";
 type ParsedValue = { ok: true; value: unknown } | { ok: false; error: string };
@@ -28,28 +28,30 @@ export function EntityComponentEditor({
   schema: Schema;
   entityComponent: EntityComponent;
 }) {
-  const queryClient = useQueryClient();
+  const { mutateAsync: saveComponent } = useSetComponent(entity);
   const typeById = useMemo(
     () => new Map(schema.types.map((type) => [type.id, type])),
     [schema.types],
   );
   const [draft, setDraft] = useState(entityComponent.value);
+  const [syncedRemoteValue, setSyncedRemoteValue] = useState(entityComponent.value);
   const [rawValues, setRawValues] = useState<Record<string, string>>(() =>
     createRawValues(component, entityComponent.value, typeById),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [saveError, setSaveError] = useState<string>();
+  const [locallyDirty, setLocallyDirty] = useState(false);
+  const [editing, setEditing] = useState(false);
   const pendingRef = useRef<unknown | undefined>(undefined);
+  const invalidKeysRef = useRef(new Set<string>());
+  const editingRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const savingRef = useRef(false);
   const mountedRef = useRef(true);
-  const queryKey = useMemo(
-    () => ["entity", entity.index, entity.generation],
-    [entity.index, entity.generation],
-  );
+  const flushSaveRef = useRef<() => Promise<void>>(async () => undefined);
 
-  const flushSave = useCallback(async () => {
+  async function flushSave() {
     if (savingRef.current || pendingRef.current === undefined) return;
 
     const value = pendingRef.current;
@@ -61,16 +63,24 @@ export function EntityComponentEditor({
     }
 
     try {
-      const saved = await siecsClient.setComponent(entity, component.id, value);
-      queryClient.setQueryData<EntityDetail>(queryKey, (current) =>
-        current
-          ? {
-              ...current,
-              components: current.components.map((item) => (item.id === saved.id ? saved : item)),
-            }
-          : current,
-      );
-      if (mountedRef.current) setSaveState("saved");
+      const saved = await saveComponent({ componentId: component.id, value });
+      if (mountedRef.current) {
+        const savedLatestDraft =
+          pendingRef.current === undefined && invalidKeysRef.current.size === 0;
+        if (savedLatestDraft && !editingRef.current) {
+          setSyncedRemoteValue(saved.value);
+          setDraft(saved.value);
+          setRawValues(createRawValues(component, saved.value, typeById));
+          setErrors({});
+          invalidKeysRef.current.clear();
+          setLocallyDirty(false);
+          setSaveState("saved");
+        } else if (savedLatestDraft) {
+          setSaveState("saved");
+        } else {
+          setSaveState("pending");
+        }
+      }
     } catch (error) {
       if (mountedRef.current) {
         setSaveState("error");
@@ -79,40 +89,67 @@ export function EntityComponentEditor({
     } finally {
       savingRef.current = false;
       if (mountedRef.current && pendingRef.current !== undefined) {
-        void flushSave();
+        void flushSaveRef.current();
       }
     }
-  }, [component.id, entity, queryClient, queryKey]);
-
-  const scheduleSave = useCallback(
-    (value: unknown) => {
-      pendingRef.current = value;
-      setSaveState("pending");
-      setSaveError(undefined);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        timerRef.current = undefined;
-        void flushSave();
-      }, COMPONENT_SAVE_DEBOUNCE_MS);
-    },
-    [flushSave],
-  );
+  }
 
   useEffect(() => {
+    flushSaveRef.current = flushSave;
+  });
+
+  const scheduleSave = (value: unknown) => {
+    setLocallyDirty(true);
+    pendingRef.current = value;
+    setSaveState("pending");
+    setSaveError(undefined);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = undefined;
+      void flushSaveRef.current();
+    }, COMPONENT_SAVE_DEBOUNCE_MS);
+  };
+
+  useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 
+  const dirty = saveState === "pending" || saveState === "saving" || saveState === "error";
+
+  if (!editing && !locallyDirty && !dirty && syncedRemoteValue !== entityComponent.value) {
+    setSyncedRemoteValue(entityComponent.value);
+    setDraft(entityComponent.value);
+    setRawValues(createRawValues(component, entityComponent.value, typeById));
+    setErrors({});
+  }
+
+  useEffect(() => {
+    if (saveState !== "saved") return;
+    const timer = setTimeout(() => setSaveState("idle"), 1500);
+    return () => clearTimeout(timer);
+  }, [saveState]);
+
   const update = (key: string, type: TypeDef, raw: string) => {
+    setLocallyDirty(true);
     setRawValues((current) => ({ ...current, [key]: raw }));
     const parsed = parseEditorValue(type.editor, raw);
     if (!parsed.ok) {
+      invalidKeysRef.current.add(key);
+      pendingRef.current = undefined;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = undefined;
+      }
       setErrors((current) => ({ ...current, [key]: parsed.error }));
+      setSaveState("pending");
       return;
     }
 
+    invalidKeysRef.current.delete(key);
     setErrors((current) => removeKey(current, key));
     const next =
       component.fields.length === 0 ? parsed.value : updateObjectField(draft, key, parsed.value);
@@ -121,6 +158,7 @@ export function EntityComponentEditor({
   };
 
   const updateBoolean = (key: string, value: boolean) => {
+    invalidKeysRef.current.delete(key);
     const next = component.fields.length === 0 ? value : updateObjectField(draft, key, value);
     setErrors((current) => removeKey(current, key));
     setDraft(next);
@@ -145,7 +183,27 @@ export function EntityComponentEditor({
         ];
 
   return (
-    <VStack align="stretch" gap="4">
+    <VStack
+      align="stretch"
+      gap="4"
+      onFocusCapture={() => {
+        editingRef.current = true;
+        setEditing(true);
+      }}
+      onBlurCapture={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+        editingRef.current = false;
+        setEditing(false);
+        if (
+          pendingRef.current === undefined &&
+          invalidKeysRef.current.size === 0 &&
+          !savingRef.current &&
+          saveState !== "error"
+        ) {
+          setLocallyDirty(false);
+        }
+      }}
+    >
       <SaveStatus state={saveState} error={saveError} />
       <VStack align="stretch" gap="4">
         {fields.map((field) => (
@@ -158,6 +216,9 @@ export function EntityComponentEditor({
             error={errors[field.key]}
             onChange={(raw) => field.type && update(field.key, field.type, raw)}
             onBooleanChange={(value) => updateBoolean(field.key, value)}
+            onEntityChange={(value) =>
+              field.type && update(field.key, field.type, String(value.index))
+            }
           />
         ))}
       </VStack>
@@ -173,6 +234,7 @@ function EditorField({
   error,
   onChange,
   onBooleanChange,
+  onEntityChange,
 }: {
   label: string;
   type?: TypeDef;
@@ -181,6 +243,7 @@ function EditorField({
   error?: string;
   onChange: (value: string) => void;
   onBooleanChange: (value: boolean) => void;
+  onEntityChange: (value: EntityRef) => void;
 }) {
   if (!type || type.editor === "unsupported") {
     return (
@@ -206,20 +269,47 @@ function EditorField({
     );
   }
 
+  if (type.editor === "entity") {
+    return (
+      <Field.Root invalid={Boolean(error)}>
+        <Field.Label>{label}</Field.Label>
+        <EntityPicker
+          value={typeof value === "number" ? value : undefined}
+          onChange={onEntityChange}
+          label={`Select entity for ${label}`}
+        />
+        {error ? <Field.ErrorText>{error}</Field.ErrorText> : null}
+      </Field.Root>
+    );
+  }
+
   const displayValue = rawValue ?? formatEditorValue(type.editor, value);
   return (
-    <Field.Root orientation={"horizontal"} invalid={Boolean(error)}>
+    <Field.Root
+      orientation={type.editor === "object" ? "vertical" : "horizontal"}
+      invalid={Boolean(error)}
+    >
       <Field.Label>{label}</Field.Label>
       <Text textStyle="xs" color="fg.muted">
         {type.name}
       </Text>
-      <Input
-        ml={1}
-        type={type.editor === "number" || type.editor === "entity" ? "number" : "text"}
-        value={displayValue}
-        onChange={(event) => onChange(event.target.value)}
-        step={type.editor === "entity" ? "1" : "any"}
-      />
+      {type.editor === "object" ? (
+        <Textarea
+          fontFamily="mono"
+          fontSize="sm"
+          minH="24"
+          value={displayValue}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : (
+        <Input
+          ml="1"
+          type={type.editor === "number" ? "number" : "text"}
+          value={displayValue}
+          onChange={(event) => onChange(event.target.value)}
+          step="any"
+        />
+      )}
       {error ? <Field.ErrorText>{error}</Field.ErrorText> : null}
     </Field.Root>
   );
@@ -229,16 +319,25 @@ function SaveStatus({ state, error }: { state: SaveState; error?: string }) {
   if (state === "idle") return null;
   const text =
     state === "pending"
-      ? "Modifying…"
+      ? "Modified…"
       : state === "saving"
         ? "Saving…"
         : state === "saved"
           ? "Saved"
           : error || "Save failed";
   return (
-    <Text textStyle="xs" color={state === "error" ? "fg.error" : "fg.muted"}>
-      {text}
-    </Text>
+    <HStack
+      gap="1"
+      minH="4"
+      color={state === "error" ? "fg.error" : "fg.muted"}
+      aria-live="polite"
+      title={state === "error" ? error : undefined}
+    >
+      {state === "saving" ? <Spinner size="xs" /> : null}
+      {state === "saved" ? <Check size={12} aria-hidden="true" /> : null}
+      {state === "error" ? <CircleAlert size={12} aria-hidden="true" /> : null}
+      <Text textStyle="xs">{text}</Text>
+    </HStack>
   );
 }
 
