@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 type UseIntervalOptions = {
   preventOverlap?: boolean;

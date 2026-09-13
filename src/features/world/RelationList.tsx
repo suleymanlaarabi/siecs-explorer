@@ -1,8 +1,8 @@
-import { createListCollection, Listbox } from "@chakra-ui/react";
-import { useSchema } from "../../hooks/useSchema";
-import { useMemo } from "react";
-import { useSetAtom } from "jotai";
-import { worldEditorSelectedRelationAtom } from "./atom";
+import { createListCollection, Listbox } from '@chakra-ui/react';
+import { useSchema } from '../../hooks/useSchema';
+import { useMemo } from 'react';
+import { useSetAtom } from 'jotai';
+import { worldEditorSelectedRelationAtom } from './atom';
 
 export function RelationList() {
   const { data } = useSchema();
@@ -22,20 +22,17 @@ export function RelationList() {
     <Listbox.Root
       onValueChange={(el) => {
         const item = el.items.pop();
-        setSelectedRelation(
-          item
-            ? {
-                relation: item,
-                schema: data!,
-              }
-            : undefined,
-        );
+        if (!item || !data) {
+          setSelectedRelation(undefined);
+          return;
+        }
+        setSelectedRelation({ relation: item, schema: data });
       }}
       collection={collections}
       width="full"
-      height={"full"}
+      height={'full'}
     >
-      <Listbox.Content rounded={"none"} border={"none"} height="full" maxH="none">
+      <Listbox.Content rounded={'none'} border={'none'} height="full" maxH="none">
         {collections.items.map((relation) => (
           <Listbox.Item
             item={relation}
@@ -43,10 +40,10 @@ export function RelationList() {
             flex="none"
             rounded="xs"
             _hover={{
-              bg: "bg.emphasized/60",
+              bg: 'bg.emphasized/60',
             }}
             _selected={{
-              bg: "bg.muted",
+              bg: 'bg.muted',
             }}
           >
             <Listbox.ItemText fontSize="md">{relation.name}</Listbox.ItemText>

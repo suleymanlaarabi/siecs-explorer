@@ -1,9 +1,9 @@
-import { Button, CloseButton, Dialog, HStack, IconButton, Portal, Text } from "@chakra-ui/react";
-import { Download, Upload } from "lucide-react";
-import { useRef, useState } from "react";
-import { toaster } from "../../components/ui/toaster-provider";
-import { Tooltip } from "./tooltip";
-import { useSceneActions } from "./hooks/useSceneActions";
+import { Button, CloseButton, Dialog, HStack, IconButton, Portal, Text } from '@chakra-ui/react';
+import { Download, Upload } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { toaster } from '../../components/ui/toaster-provider';
+import { Tooltip } from './tooltip';
+import { useSceneActions } from './hooks/useSceneActions';
 
 export function SceneActions() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -17,7 +17,7 @@ export function SceneActions() {
       <HStack gap="1">
         <Tooltip content="Save scene">
           <IconButton
-            variant="ghost"
+            variant="outline"
             size="sm"
             aria-label="Save scene"
             loading={isSaving}
@@ -33,14 +33,14 @@ export function SceneActions() {
         </Tooltip>
         <Tooltip content="Load scene">
           <IconButton
-            variant="ghost"
+            variant="outline"
             size="sm"
             aria-label="Load scene"
             loading={isLoading}
             disabled={isBusy}
             onClick={() => {
               if (fileInputRef.current) {
-                fileInputRef.current.value = "";
+                fileInputRef.current.value = '';
                 fileInputRef.current.click();
               }
             }}
@@ -56,10 +56,10 @@ export function SceneActions() {
         hidden
         onChange={(event) => {
           const selectedFile = event.currentTarget.files?.[0];
-          event.currentTarget.value = "";
+          event.currentTarget.value = '';
           if (!selectedFile) return;
           if (selectedFile.size === 0) {
-            toaster.create({ title: "Invalid scene file", type: "error", closable: true });
+            toaster.create({ title: 'Invalid scene file', type: 'error', closable: true });
             return;
           }
           setFile(selectedFile);

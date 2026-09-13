@@ -3,7 +3,7 @@ import {
   useMutation,
   useQueryClient,
   type QueryClient,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 import {
   SiecsError,
   siecsClient,
@@ -13,16 +13,16 @@ import {
   type EntityLike,
   type EntityRef,
   type EntityRelation,
-} from "../../../client";
-import { toaster } from "../../../components/ui/toaster-provider";
-import { entityKeys, isEntityChildrenQuery } from "../entityQueries";
+} from '../../../client';
+import { toaster } from '../../../components/ui/toaster-provider';
+import { entityKeys, isEntityChildrenQuery } from '../entityQueries';
 import {
   markEntityHasChildren,
   moveEntityToParent,
   moveEntityToRoots,
   removeEntityFromParent,
   sameEntity,
-} from "../hierarchyCache";
+} from '../hierarchyCache';
 
 export function addComponentToEntity(entity: EntityDetail, component: EntityComponent) {
   return { ...entity, components: [...entity.components, component] };
@@ -62,52 +62,52 @@ export function removeRelationFromEntity(entity: EntityDetail, relationId: numbe
 export function useAddComponent(entity: EntityRef) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: entityMutationKey(entity, "add-component"),
+    mutationKey: entityMutationKey(entity, 'add-component'),
     mutationFn: ({ componentId, value }: { componentId: number; value?: unknown }) =>
       siecsClient.addComponent(entity, componentId, value),
     onSuccess: (component) => {
       updateEntityCache(queryClient, entity, (current) => addComponentToEntity(current, component));
       invalidateEntity(queryClient, entity);
-      showMutationSuccess("Component added");
+      showMutationSuccess('Component added');
     },
-    onError: (error) => showMutationError("Unable to add component", error),
+    onError: (error) => showMutationError('Unable to add component', error),
   });
 }
 
 export function useSetComponent(entity: EntityRef) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: entityMutationKey(entity, "set-component"),
+    mutationKey: entityMutationKey(entity, 'set-component'),
     mutationFn: ({ componentId, value }: { componentId: number; value: unknown }) =>
       siecsClient.setComponent(entity, componentId, value),
     onSuccess: (component) => {
       updateEntityCache(queryClient, entity, (current) => setComponentOnEntity(current, component));
       invalidateEntity(queryClient, entity);
     },
-    onError: (error) => showMutationError("Unable to save component", error),
+    onError: (error) => showMutationError('Unable to save component', error),
   });
 }
 
 export function useRemoveComponent(entity: EntityRef) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: entityMutationKey(entity, "remove-component"),
+    mutationKey: entityMutationKey(entity, 'remove-component'),
     mutationFn: (componentId: number) => siecsClient.removeComponent(entity, componentId),
     onSuccess: (_, componentId) => {
       updateEntityCache(queryClient, entity, (current) =>
         removeComponentFromEntity(current, componentId),
       );
       invalidateEntity(queryClient, entity);
-      showMutationSuccess("Component removed");
+      showMutationSuccess('Component removed');
     },
-    onError: (error) => showMutationError("Unable to remove component", error),
+    onError: (error) => showMutationError('Unable to remove component', error),
   });
 }
 
 export function useSetRelation(entity: EntityRef) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: entityMutationKey(entity, "set-relation"),
+    mutationKey: entityMutationKey(entity, 'set-relation'),
     mutationFn: ({
       relationId,
       target,
@@ -119,17 +119,17 @@ export function useSetRelation(entity: EntityRef) {
     onSuccess: (relation, variables) => {
       const previous = queryClient.getQueryData<EntityDetail>(entityKeys.detail(entity));
       updateEntityCache(queryClient, entity, (current) => setRelationOnEntity(current, relation));
-      if (relation.name === "ChildOf") {
+      if (relation.name === 'ChildOf') {
         updateChildOfCache(queryClient, entity, previous, relation.target);
       }
       invalidateEntity(queryClient, entity);
-      showMutationSuccess(variables.isNew ? "Relation added" : "Relation changed");
+      showMutationSuccess(variables.isNew ? 'Relation added' : 'Relation changed');
     },
     onError: (error) =>
       showMutationError(
         error instanceof SiecsError && error.status === 409
-          ? "Relation would create a cycle"
-          : "Unable to change relation",
+          ? 'Relation would create a cycle'
+          : 'Unable to change relation',
         error,
       ),
   });
@@ -138,7 +138,7 @@ export function useSetRelation(entity: EntityRef) {
 export function useRemoveRelation(entity: EntityRef) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: entityMutationKey(entity, "remove-relation"),
+    mutationKey: entityMutationKey(entity, 'remove-relation'),
     mutationFn: (relationId: number) => siecsClient.removeRelation(entity, relationId),
     onSuccess: (_, relationId) => {
       const previous = queryClient.getQueryData<EntityDetail>(entityKeys.detail(entity));
@@ -146,13 +146,13 @@ export function useRemoveRelation(entity: EntityRef) {
       updateEntityCache(queryClient, entity, (current) =>
         removeRelationFromEntity(current, relationId),
       );
-      if (relation?.name === "ChildOf") {
+      if (relation?.name === 'ChildOf') {
         removeChildOfCache(queryClient, entity, relation.target, previous);
       }
       invalidateEntity(queryClient, entity);
-      showMutationSuccess("Relation removed");
+      showMutationSuccess('Relation removed');
     },
-    onError: (error) => showMutationError("Unable to remove relation", error),
+    onError: (error) => showMutationError('Unable to remove relation', error),
   });
 }
 
@@ -166,7 +166,7 @@ function updateChildOfCache(
   previous: EntityDetail | undefined,
   nextParent: EntityRef,
 ) {
-  const previousChildOf = previous?.relations.find((relation) => relation.name === "ChildOf");
+  const previousChildOf = previous?.relations.find((relation) => relation.name === 'ChildOf');
   const child = entityFromDetail(previous, entity);
   const oldParent = previousChildOf?.target;
 
@@ -256,18 +256,18 @@ function invalidateEntity(queryClient: QueryClient, entity: EntityRef) {
 }
 
 function entityMutationKey(entity: EntityRef, action?: string) {
-  return [...entityKeys.detail(entity), "mutation", ...(action ? [action] : [])];
+  return [...entityKeys.detail(entity), 'mutation', ...(action ? [action] : [])];
 }
 
 function showMutationError(title: string, error: unknown) {
   toaster.create({
     title,
-    description: error instanceof Error ? error.message : "Unknown error",
-    type: "error",
+    description: error instanceof Error ? error.message : 'Unknown error',
+    type: 'error',
     closable: true,
   });
 }
 
 function showMutationSuccess(title: string) {
-  toaster.create({ title, type: "success" });
+  toaster.create({ title, type: 'success' });
 }

@@ -1,6 +1,5 @@
-import { Button, CloseButton, Dialog, Portal } from "@chakra-ui/react";
-import type { ReactNode } from "react";
-import { useState } from "react";
+import { Button, CloseButton, Dialog, Portal } from '@chakra-ui/react';
+import { useState, type ReactNode } from 'react';
 
 export function MutationDialog({
   title,
@@ -9,7 +8,7 @@ export function MutationDialog({
   pending,
   canSubmit,
   submit,
-  submitLabel = "Add",
+  submitLabel = 'Add',
   onClose,
 }: {
   title: string;
@@ -19,7 +18,7 @@ export function MutationDialog({
   canSubmit: boolean;
   submit: () => Promise<void>;
   submitLabel?: string;
-  onClose?: () => void;
+  onClose?: (() => void) | undefined;
 }) {
   const [open, setOpen] = useState(false);
   const close = (nextOpen: boolean) => {

@@ -1,11 +1,11 @@
-import { Badge, Box, HStack, IconButton, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useSetAtom } from "jotai";
-import { ExternalLink as ExternalLinkIcon } from "lucide-react";
-import type { EntityDetail, EntityRelation, Schema } from "../../../client";
-import { ConfirmDeleteAction } from "../../../components/ConfirmDeleteAction";
-import { EntityPicker } from "../EntityPicker";
-import { worldEditorSelectedEntityAtom } from "../atom";
-import { useRemoveRelation, useSetRelation } from "../hooks/useEntityMutations";
+import { Badge, Box, HStack, IconButton, Spinner, Text, VStack } from '@chakra-ui/react';
+import { useSetAtom } from 'jotai';
+import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
+import type { EntityDetail, EntityRelation, Schema } from '../../../client';
+import { ConfirmDeleteAction } from '../../../components/ConfirmDeleteAction';
+import { EntityPicker } from '../EntityPicker';
+import { worldEditorSelectedEntityAtom } from '../atom';
+import { useRemoveRelation, useSetRelation } from '../hooks/useEntityMutations';
 
 export function EntityRelationCard({
   entity,
@@ -13,7 +13,7 @@ export function EntityRelationCard({
   relation,
 }: {
   entity: EntityDetail;
-  schema?: Schema;
+  schema?: Schema | undefined;
   relation: EntityRelation;
 }) {
   const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);

@@ -1,8 +1,8 @@
-import { createListCollection, Listbox } from "@chakra-ui/react";
-import { useSchema } from "../../hooks/useSchema";
-import { useMemo } from "react";
-import { useSetAtom } from "jotai";
-import { worldEditorSelectedComponentAtom } from "./atom";
+import { createListCollection, Listbox } from '@chakra-ui/react';
+import { useSchema } from '../../hooks/useSchema';
+import { useMemo } from 'react';
+import { useSetAtom } from 'jotai';
+import { worldEditorSelectedComponentAtom } from './atom';
 
 export function ComponentList() {
   const { data } = useSchema();
@@ -22,20 +22,17 @@ export function ComponentList() {
     <Listbox.Root
       onValueChange={(el) => {
         const item = el.items.pop();
-        setSelectedComponent(
-          item
-            ? {
-                component: item,
-                schema: data!,
-              }
-            : undefined,
-        );
+        if (!item || !data) {
+          setSelectedComponent(undefined);
+          return;
+        }
+        setSelectedComponent({ component: item, schema: data });
       }}
       collection={collections}
       width="full"
-      height={"full"}
+      height={'full'}
     >
-      <Listbox.Content rounded={"none"} border={"none"} height="full" maxH="none">
+      <Listbox.Content rounded={'none'} border={'none'} height="full" maxH="none">
         {collections.items.map((component) => (
           <Listbox.Item
             item={component}
@@ -43,10 +40,10 @@ export function ComponentList() {
             flex="none"
             rounded="xs"
             _hover={{
-              bg: "bg.emphasized/60",
+              bg: 'bg.emphasized/60',
             }}
             _selected={{
-              bg: "bg.muted",
+              bg: 'bg.muted',
             }}
           >
             <Listbox.ItemText fontSize="md">{component.name}</Listbox.ItemText>

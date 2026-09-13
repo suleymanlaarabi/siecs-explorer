@@ -1,16 +1,22 @@
-import { Badge, Box, Card, Heading, HStack, Separator, Text, VStack } from "@chakra-ui/react";
-import type { EntityDetail, Schema } from "../../../client";
-import { EntityComponentsSection } from "./EntityComponentsSection";
-import { EntityRelationsSection } from "./EntityRelationsSection";
+import { Badge, Box, Card, Heading, HStack, Separator, Text, VStack } from '@chakra-ui/react';
+import type { EntityDetail, Schema } from '../../../client';
+import { EntityComponentsSection } from './EntityComponentsSection';
+import { EntityRelationsSection } from './EntityRelationsSection';
 
-export function EntityInspector({ entity, schema }: { entity: EntityDetail; schema?: Schema }) {
+export function EntityInspector({
+  entity,
+  schema,
+}: {
+  entity: EntityDetail;
+  schema?: Schema | undefined;
+}) {
   return (
     <Card.Root variant="outline" rounded="none" border="none" h="full">
       <Card.Header px="4" py="3" borderBottomWidth="1px">
         <HStack justify="space-between" align="start" gap="3">
           <Box minW="0">
             <Heading size="md" truncate>
-              {entity.name || "Unnamed entity"}
+              {entity.name || 'Unnamed entity'}
             </Heading>
             <Text textStyle="xs" color="fg.muted">
               Entity inspector

@@ -1,11 +1,11 @@
-import { Card, EmptyState, Heading, HStack, Skeleton, Text, VStack } from "@chakra-ui/react";
-import { useAtomValue } from "jotai";
-import type { ReactNode } from "react";
-import type { EntityRef } from "../../client";
-import { useSchema } from "../../hooks/useSchema";
-import { worldEditorSelectedEntityAtom } from "./atom";
-import { EntityInspector } from "./entity/EntityInspector";
-import { useEntity } from "./entityQueries";
+import { Card, EmptyState, Heading, HStack, Skeleton, Text, VStack } from '@chakra-ui/react';
+import { useAtomValue } from 'jotai';
+import type { ReactNode } from 'react';
+import type { EntityRef } from '../../client';
+import { useSchema } from '../../hooks/useSchema';
+import { worldEditorSelectedEntityAtom } from './atom';
+import { EntityInspector } from './entity/EntityInspector';
+import { useEntity } from './entityQueries';
 
 export function EntityView() {
   const entity = useAtomValue(worldEditorSelectedEntityAtom);
@@ -25,7 +25,7 @@ function EntityDetail({ entity }: { entity: EntityRef }) {
           <EmptyState.Content>
             <EmptyState.Title>Unable to load entity</EmptyState.Title>
             <EmptyState.Description>
-              {error instanceof Error ? error.message : "Unknown error"}
+              {error instanceof Error ? error.message : 'Unknown error'}
             </EmptyState.Description>
           </EmptyState.Content>
         </EmptyState.Root>
@@ -48,15 +48,15 @@ function EntityDetailShell({
   children,
 }: {
   entity: EntityRef;
-  loading?: boolean;
-  children?: ReactNode;
+  loading?: boolean | undefined;
+  children?: ReactNode | undefined;
 }) {
   return (
     <Card.Root variant="outline" rounded="none" border="none" h="full">
       <Card.Header px="4" py="3" borderBottomWidth="1px">
         <HStack justify="space-between">
           <VStack align="start" gap="0">
-            <Heading size="md">{entity.name || "Unnamed entity"}</Heading>
+            <Heading size="md">{entity.name || 'Unnamed entity'}</Heading>
             <Text textStyle="xs" color="fg.muted">
               Entity #{entity.index}
             </Text>

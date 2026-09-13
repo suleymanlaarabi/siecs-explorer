@@ -1,12 +1,12 @@
-import { Badge, Box, Button, Text, VStack } from "@chakra-ui/react";
-import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import type { EntityDetail, Schema } from "../../client";
-import { MutationDialog } from "../../components/MutationDialog";
-import { SearchableListbox } from "../../components/SearchableListbox";
-import { ReflectedValueEditor } from "./components/ReflectedValueEditor";
-import { getAddableComponents } from "./entityOptions";
-import { useAddComponent } from "./hooks/useEntityMutations";
+import { Badge, Box, Button, Text, VStack } from '@chakra-ui/react';
+import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import type { EntityDetail, Schema } from '../../client';
+import { MutationDialog } from '../../components/MutationDialog';
+import { SearchableListbox } from '../../components/SearchableListbox';
+import { ReflectedValueEditor } from './components/ReflectedValueEditor';
+import { getAddableComponents } from './entityOptions';
+import { useAddComponent } from './hooks/useEntityMutations';
 
 export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; schema: Schema }) {
   const [selectedId, setSelectedId] = useState<number>();
@@ -14,7 +14,7 @@ export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; s
   const [valid, setValid] = useState(true);
   const mutation = useAddComponent(entity);
   const available = useMemo(
-    () => getAddableComponents(schema.components, entity.components, ""),
+    () => getAddableComponents(schema.components, entity.components, ''),
     [entity.components, schema.components],
   );
   const selected = schema.components.find((component) => component.id === selectedId);
@@ -24,7 +24,7 @@ export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; s
   );
   const editable = Boolean(
     selected &&
-    (selected.fields.length > 0 || typeById.get(selected.type)?.editor !== "unsupported"),
+    (selected.fields.length > 0 || typeById.get(selected.type)?.editor !== 'unsupported'),
   );
 
   const reset = () => {

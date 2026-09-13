@@ -1,10 +1,10 @@
-import { HStack, Spinner, Text, VStack } from "@chakra-ui/react";
-import { Check, CircleAlert } from "lucide-react";
-import { useState } from "react";
-import type { ComponentDef, EntityComponent, EntityRef, Schema } from "../../../client";
-import { useDebouncedAutosave } from "../../../hooks/useDebouncedAutosave";
-import { ReflectedValueEditor } from "./ReflectedValueEditor";
-import { useSetComponent } from "../hooks/useEntityMutations";
+import { HStack, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Check, CircleAlert } from 'lucide-react';
+import { useState } from 'react';
+import type { ComponentDef, EntityComponent, EntityRef, Schema } from '../../../client';
+import { useDebouncedAutosave } from '../../../hooks/useDebouncedAutosave';
+import { ReflectedValueEditor } from './ReflectedValueEditor';
+import { useSetComponent } from '../hooks/useEntityMutations';
 
 export function EntityComponentEditor({
   entity,
@@ -51,27 +51,27 @@ export function EntityComponentEditor({
   );
 }
 
-function SaveStatus({ state, error }: { state: string; error?: string }) {
-  if (state === "idle") return null;
+function SaveStatus({ state, error }: { state: string; error?: string | undefined }) {
+  if (state === 'idle') return null;
   const text =
-    state === "pending"
-      ? "Modified…"
-      : state === "saving"
-        ? "Saving…"
-        : state === "saved"
-          ? "Saved"
-          : error || "Save failed";
+    state === 'pending'
+      ? 'Modified…'
+      : state === 'saving'
+        ? 'Saving…'
+        : state === 'saved'
+          ? 'Saved'
+          : error || 'Save failed';
   return (
     <HStack
       gap="1"
       minH="4"
-      color={state === "error" ? "fg.error" : "fg.muted"}
+      color={state === 'error' ? 'fg.error' : 'fg.muted'}
       aria-live="polite"
-      title={state === "error" ? error : undefined}
+      title={state === 'error' ? error : undefined}
     >
-      {state === "saving" ? <Spinner size="xs" /> : null}
-      {state === "saved" ? <Check size={12} aria-hidden="true" /> : null}
-      {state === "error" ? <CircleAlert size={12} aria-hidden="true" /> : null}
+      {state === 'saving' ? <Spinner size="xs" /> : null}
+      {state === 'saved' ? <Check size={12} aria-hidden="true" /> : null}
+      {state === 'error' ? <CircleAlert size={12} aria-hidden="true" /> : null}
       <Text textStyle="xs">{text}</Text>
     </HStack>
   );

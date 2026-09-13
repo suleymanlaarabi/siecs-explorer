@@ -1,9 +1,9 @@
-import { Tabs } from "@chakra-ui/react";
-import { EntityTree } from "./EntityTree";
-import { ComponentList } from "./ComponentList";
-import { useSetAtom } from "jotai";
-import { worldEditorStateAtom } from "./atom";
-import { RelationList } from "./RelationList";
+import { Tabs } from '@chakra-ui/react';
+import { EntityTree } from './EntityTree';
+import { ComponentList } from './ComponentList';
+import { useSetAtom } from 'jotai';
+import { worldEditorStateAtom } from './atom';
+import { RelationList } from './RelationList';
 
 export function WorldEditorPaneLeft() {
   const setEditorState = useSetAtom(worldEditorStateAtom);
@@ -11,15 +11,15 @@ export function WorldEditorPaneLeft() {
   return (
     <Tabs.Root
       defaultValue="entity"
-      h={"full"}
+      h={'full'}
       minH={0}
       display="flex"
       flexDirection="column"
-      rounded={"none"}
+      rounded={'none'}
       lazyMount
       unmountOnExit
       onValueChange={(tab) => {
-        setEditorState(tab.value as "entity" | "component" | "relation");
+        setEditorState(tab.value as 'entity' | 'component' | 'relation');
       }}
     >
       <Tabs.List>

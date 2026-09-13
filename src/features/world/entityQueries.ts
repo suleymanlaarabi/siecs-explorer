@@ -1,12 +1,12 @@
-import { useQuery, type QueryClient } from "@tanstack/react-query";
-import { siecsClient, type EntityRef } from "../../client";
+import { useQuery, type QueryClient } from '@tanstack/react-query';
+import { siecsClient, type EntityRef } from '../../client';
 
 export const entityKeys = {
-  all: ["entities", "all"] as const,
-  roots: ["entities", "roots"] as const,
-  detail: (entity: EntityRef) => ["entity", entity.index, entity.generation] as const,
-  children: (entity: EntityRef) => ["entity", entity.index, entity.generation, "children"] as const,
-  entity: ["entity"] as const,
+  all: ['entities', 'all'] as const,
+  roots: ['entities', 'roots'] as const,
+  detail: (entity: EntityRef) => ['entity', entity.index, entity.generation] as const,
+  children: (entity: EntityRef) => ['entity', entity.index, entity.generation, 'children'] as const,
+  entity: ['entity'] as const,
 };
 
 export async function refreshWorldQueries(queryClient: QueryClient) {
@@ -18,7 +18,7 @@ export async function refreshWorldQueries(queryClient: QueryClient) {
 }
 
 export function isEntityChildrenQuery(queryKey: readonly unknown[]) {
-  return queryKey.length === 4 && queryKey[0] === "entity" && queryKey[3] === "children";
+  return queryKey.length === 4 && queryKey[0] === 'entity' && queryKey[3] === 'children';
 }
 
 export function useRootEntities() {

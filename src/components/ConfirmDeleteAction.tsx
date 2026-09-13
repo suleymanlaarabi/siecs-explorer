@@ -1,6 +1,6 @@
-import { Button, CloseButton, Dialog, IconButton, Menu, Portal, Text } from "@chakra-ui/react";
-import { EllipsisVertical, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Button, CloseButton, Dialog, IconButton, Menu, Portal, Text } from '@chakra-ui/react';
+import { EllipsisVertical, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 export function ConfirmDeleteAction({
   subject,
@@ -35,7 +35,7 @@ export function ConfirmDeleteAction({
             <Menu.Content>
               <Menu.Item value="remove" color="fg.error" onClick={() => setOpen(true)}>
                 <Trash2 size={14} aria-hidden="true" />
-                Remove {subject.startsWith("component") ? "component" : "relation"}
+                Remove {subject.startsWith('component') ? 'component' : 'relation'}
               </Menu.Item>
             </Menu.Content>
           </Menu.Positioner>

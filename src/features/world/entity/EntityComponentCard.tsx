@@ -1,8 +1,8 @@
-import { Badge, Box, Code, HStack, Text } from "@chakra-ui/react";
-import type { EntityComponent, EntityDetail, Schema } from "../../../client";
-import { ConfirmDeleteAction } from "../../../components/ConfirmDeleteAction";
-import { EntityComponentEditor } from "../components/EntityComponentEditor";
-import { useRemoveComponent } from "../hooks/useEntityMutations";
+import { Badge, Box, Code, HStack, Text } from '@chakra-ui/react';
+import type { EntityComponent, EntityDetail, Schema } from '../../../client';
+import { ConfirmDeleteAction } from '../../../components/ConfirmDeleteAction';
+import { EntityComponentEditor } from '../components/EntityComponentEditor';
+import { useRemoveComponent } from '../hooks/useEntityMutations';
 
 export function EntityComponentCard({
   entity,
@@ -10,7 +10,7 @@ export function EntityComponentCard({
   component,
 }: {
   entity: EntityDetail;
-  schema?: Schema;
+  schema?: Schema | undefined;
   component: EntityComponent;
 }) {
   const definition = schema?.components.find((item) => item.id === component.id);
@@ -43,7 +43,7 @@ export function EntityComponentCard({
             entityComponent={component}
           />
         </Box>
-      ) : component.value != null ? (
+      ) : component.value !== null && component.value !== undefined && Object.keys(component.value).length > 0 ? (
         <Box px="3" py="2" borderTopWidth="1px">
           <ComponentValue value={component.value} />
         </Box>
@@ -53,16 +53,16 @@ export function EntityComponentCard({
 }
 
 function ComponentValue({ value }: { value: unknown }) {
-  if (typeof value === "boolean") {
+  if (typeof value === 'boolean') {
     return (
-      <Badge variant="surface" colorPalette={value ? "green" : "red"}>
+      <Badge variant="surface" colorPalette={value ? 'green' : 'red'}>
         {String(value)}
       </Badge>
     );
   }
-  if (typeof value === "string")
-    return <Text whiteSpace="pre-wrap">{value || "Empty string"}</Text>;
-  if (typeof value === "number") return <Code>{value}</Code>;
+  if (typeof value === 'string')
+    return <Text whiteSpace="pre-wrap">{value || 'Empty string'}</Text>;
+  if (typeof value === 'number') return <Code>{value}</Code>;
   let serialized: string | undefined;
   try {
     serialized = JSON.stringify(value, null, 2);

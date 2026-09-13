@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type SaveState = "idle" | "pending" | "saving" | "saved" | "error";
+export type SaveState = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
 const DEFAULT_DEBOUNCE_MS = 600;
 
@@ -17,7 +17,7 @@ export function useDebouncedAutosave<T>({
   onRemoteSync: (value: T) => void;
   debounceMs?: number;
 }) {
-  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveState, setSaveState] = useState<SaveState>('idle');
   const [error, setError] = useState<string>();
   const [locallyDirty, setLocallyDirty] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -38,7 +38,7 @@ export function useDebouncedAutosave<T>({
     pendingRef.current = undefined;
     savingRef.current = true;
     if (mountedRef.current) {
-      setSaveState("saving");
+      setSaveState('saving');
       setError(undefined);
     }
 
@@ -50,12 +50,12 @@ export function useDebouncedAutosave<T>({
           onRemoteSync(saved);
           setLocallyDirty(false);
         }
-        setSaveState(pendingRef.current === undefined ? "saved" : "pending");
+        setSaveState(pendingRef.current === undefined ? 'saved' : 'pending');
       }
     } catch (saveError) {
       if (mountedRef.current) {
-        setSaveState("error");
-        setError(saveError instanceof Error ? saveError.message : "Save failed");
+        setSaveState('error');
+        setError(saveError instanceof Error ? saveError.message : 'Save failed');
       }
     } finally {
       savingRef.current = false;
@@ -94,15 +94,15 @@ export function useDebouncedAutosave<T>({
   }, [locallyDirty, onRemoteSync, remoteValue]);
 
   useEffect(() => {
-    if (saveState !== "saved") return;
-    const timer = setTimeout(() => setSaveState("idle"), 1500);
+    if (saveState !== 'saved') return;
+    const timer = setTimeout(() => setSaveState('idle'), 1500);
     return () => clearTimeout(timer);
   }, [saveState]);
 
   const update = (value: T) => {
     setLocallyDirty(true);
     pendingRef.current = value;
-    setSaveState("pending");
+    setSaveState('pending');
     setError(undefined);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -119,7 +119,7 @@ export function useDebouncedAutosave<T>({
         clearTimeout(timerRef.current);
         timerRef.current = undefined;
       }
-      setSaveState("pending");
+      setSaveState('pending');
     }
   };
 
@@ -135,7 +135,7 @@ export function useDebouncedAutosave<T>({
     saveState,
     error,
     dirty:
-      locallyDirty || saveState === "pending" || saveState === "saving" || saveState === "error",
+      locallyDirty || saveState === 'pending' || saveState === 'saving' || saveState === 'error',
     editing,
     update,
     setValidity,

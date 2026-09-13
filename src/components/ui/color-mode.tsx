@@ -1,12 +1,17 @@
-"use client";
+'use client';
 
-import type { IconButtonProps, SpanProps } from "@chakra-ui/react";
-import { ClientOnly, IconButton, Skeleton, Span } from "@chakra-ui/react";
-import { ThemeProvider } from "next-themes";
-import type { ThemeProviderProps } from "next-themes";
-import * as React from "react";
-import { LuMoon, LuSun } from "react-icons/lu";
-import { useColorMode } from "./color-mode-hooks";
+import {
+  ClientOnly,
+  IconButton,
+  Skeleton,
+  Span,
+  type IconButtonProps,
+  type SpanProps,
+} from '@chakra-ui/react';
+import { ThemeProvider, type ThemeProviderProps } from 'next-themes';
+import * as React from 'react';
+import { LuMoon, LuSun } from 'react-icons/lu';
+import { useColorMode } from './color-mode-hooks';
 
 export type ColorModeProviderProps = ThemeProviderProps;
 
@@ -14,14 +19,14 @@ export function ColorModeProvider(props: ThemeProviderProps) {
   return <ThemeProvider attribute="class" disableTransitionOnChange {...props} />;
 }
 
-export type ColorMode = "light" | "dark";
+export type ColorMode = 'light' | 'dark';
 
 export function ColorModeIcon() {
   const { colorMode } = useColorMode();
-  return colorMode === "dark" ? <LuMoon /> : <LuSun />;
+  return colorMode === 'dark' ? <LuMoon /> : <LuSun />;
 }
 
-type ColorModeButtonProps = Omit<IconButtonProps, "aria-label">;
+type ColorModeButtonProps = Omit<IconButtonProps, 'aria-label'>;
 
 export const ColorModeButton = React.forwardRef<HTMLButtonElement, ColorModeButtonProps>(
   function ColorModeButton(props, ref) {
@@ -37,8 +42,8 @@ export const ColorModeButton = React.forwardRef<HTMLButtonElement, ColorModeButt
           {...props}
           css={{
             _icon: {
-              width: "5",
-              height: "5",
+              width: '5',
+              height: '5',
             },
           }}
         >

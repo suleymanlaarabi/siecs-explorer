@@ -1,5 +1,5 @@
-import { useAtom } from "jotai";
-import { worldEditorStateAtom } from "../atom";
+import { useAtom } from 'jotai';
+import { worldEditorStateAtom } from '../atom';
 
 export function useWorldEditorState() {
   const state = useAtom(worldEditorStateAtom);

@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient } from '@tanstack/react-query';
 
 export type EntityRef = {
   name: string;
@@ -33,20 +33,20 @@ export type EntityLike = number | EntityRef;
 export type SiecsClientOptions = {
   host?: string;
   port?: number;
-  protocol?: "http" | "https";
+  protocol?: 'http' | 'https';
 };
 
 export class SiecsError extends Error {
-  readonly status?: number;
+  readonly status: number | undefined;
 
   constructor(message: string, status?: number) {
     super(message);
-    this.name = "SiecsError";
+    this.name = 'SiecsError';
     this.status = status;
   }
 }
 
-export type EditorType = "boolean" | "number" | "entity" | "string" | "object" | "unsupported";
+export type EditorType = 'boolean' | 'number' | 'entity' | 'string' | 'object' | 'unsupported';
 
 export type TypeDef = {
   id: number;
@@ -85,14 +85,14 @@ export class SiecsClient {
   private readonly url: string;
 
   constructor(options: SiecsClientOptions = {}) {
-    const { host = "127.0.0.1", port = 4040, protocol = "http" } = options;
+    const { host = '127.0.0.1', port = 4040, protocol = 'http' } = options;
 
     this.url = `${protocol}://${host}:${port}`;
   }
 
   async health(): Promise<boolean> {
     try {
-      const result = await fetch(this.url + "/health");
+      const result = await fetch(this.url + '/health');
       if (result.ok) return true;
       return false;
     } catch {
@@ -101,34 +101,34 @@ export class SiecsClient {
   }
 
   async entities(): Promise<Entity[]> {
-    return this.get("/entities");
+    return this.get('/entities');
   }
 
   async allEntities(): Promise<Entity[]> {
-    return this.get("/entities/all");
+    return this.get('/entities/all');
   }
 
   async createEntity(): Promise<Entity> {
-    return this.post("/entities");
+    return this.post('/entities');
   }
 
   async schema(): Promise<Schema> {
-    return this.get("/schema");
+    return this.get('/schema');
   }
 
   async saveScene(): Promise<Blob> {
-    const path = "/scene";
+    const path = '/scene';
     const response = await fetch(this.url + path, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        accept: "application/octet-stream",
+        accept: 'application/octet-stream',
       },
     });
 
     if (!response.ok) {
       const serverMessage = await readErrorMessage(response);
       throw new SiecsError(
-        `GET ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ""}`,
+        `GET ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ''}`,
         response.status,
       );
     }
@@ -137,11 +137,11 @@ export class SiecsClient {
   }
 
   async loadScene(data: ArrayBuffer | Blob): Promise<void> {
-    const path = "/scene";
+    const path = '/scene';
     const response = await fetch(this.url + path, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "content-type": "application/octet-stream",
+        'content-type': 'application/octet-stream',
       },
       body: data,
     });
@@ -149,7 +149,7 @@ export class SiecsClient {
     if (!response.ok) {
       const serverMessage = await readErrorMessage(response);
       throw new SiecsError(
-        `POST ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ""}`,
+        `POST ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ''}`,
         response.status,
       );
     }
@@ -205,7 +205,7 @@ export class SiecsClient {
   private async get<T>(path: string): Promise<T> {
     const response = await fetch(this.url + path, {
       headers: {
-        accept: "application/json",
+        accept: 'application/json',
       },
     });
 
@@ -217,19 +217,21 @@ export class SiecsClient {
   }
 
   private async request<T>(path: string, method: string, data: unknown = undefined): Promise<T> {
-    const response = await fetch(this.url + path, {
+    const requestInit: RequestInit = {
       headers: {
-        accept: "application/json",
-        ...(data !== undefined ? { "content-type": "application/json" } : {}),
+        accept: 'application/json',
+        ...(data !== undefined ? { 'content-type': 'application/json' } : {}),
       },
       method,
-      body: data != undefined ? JSON.stringify(data) : undefined,
-    });
+    };
+    if (data !== undefined) requestInit.body = JSON.stringify(data);
+
+    const response = await fetch(this.url + path, requestInit);
 
     if (!response.ok) {
       const serverMessage = await readErrorMessage(response);
       throw new SiecsError(
-        `${method} ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ""}`,
+        `${method} ${path} failed: ${response.status}${serverMessage ? ` — ${serverMessage}` : ''}`,
         response.status,
       );
     }
@@ -239,30 +241,30 @@ export class SiecsClient {
   }
 
   private async post<T>(path: string, data: unknown = undefined): Promise<T> {
-    return this.request(path, "POST", data);
+    return this.request(path, 'POST', data);
   }
   private async put<T>(path: string, data: unknown = undefined): Promise<T> {
-    return this.request(path, "PUT", data);
+    return this.request(path, 'PUT', data);
   }
   private async delete<T = void>(path: string): Promise<T> {
-    return this.request(path, "DELETE");
+    return this.request(path, 'DELETE');
   }
 }
 
-async function readErrorMessage(response: Response) {
+async function readErrorMessage(response: Response): Promise<string> {
   const text = await response.text();
-  if (!text) return "";
+  if (!text) return '';
   try {
     const body = JSON.parse(text) as { message?: unknown; error?: unknown };
     const message = body.message ?? body.error;
-    return typeof message === "string" ? message : text;
+    return typeof message === 'string' ? message : text;
   } catch {
     return text;
   }
 }
 
 export function entityId(entity: EntityLike): number {
-  if (typeof entity === "object") {
+  if (typeof entity === 'object') {
     return entity.index;
   }
   return entity;

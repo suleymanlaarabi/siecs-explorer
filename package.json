@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "test": "bun test && vitest run",
-    "lint": "bun run oxlint --fix --fix-suggestions --fix-dangerously && eslint .",
+    "lint": "oxlint --deny-warnings . && eslint .",
+    "lint:fix": "oxlint --fix . && eslint . --fix",
     "preview": "vite preview",
-    "fmt": "oxfmt"
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "fmt": "bun run format",
+    "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.36.1",

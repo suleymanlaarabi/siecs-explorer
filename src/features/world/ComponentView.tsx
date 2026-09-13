@@ -1,7 +1,7 @@
-import { useAtomValue } from "jotai";
-import { worldEditorSelectedComponentAtom } from "./atom";
-import type { Schema } from "../../client";
-import { Card, Heading, HStack, Text, VStack } from "@chakra-ui/react";
+import { useAtomValue } from 'jotai';
+import { worldEditorSelectedComponentAtom } from './atom';
+import type { Schema } from '../../client';
+import { Card, Heading, HStack, Text, VStack } from '@chakra-ui/react';
 
 type ComponentInspectorProps = {
   schema: Schema;
@@ -9,12 +9,13 @@ type ComponentInspectorProps = {
 };
 
 export function ComponentInspector({ schema, componentId }: ComponentInspectorProps) {
-  const component = schema.components.find((c) => c.id === componentId)!;
+  const component = schema.components.find((item) => item.id === componentId);
+  if (!component) return null;
 
   const typeById = new Map(schema.types.map((type) => [type.id, type]));
 
   return (
-    <Card.Root variant="outline" rounded={"none"} border={"none"} h={"full"}>
+    <Card.Root variant="outline" rounded={'none'} border={'none'} h={'full'}>
       <Card.Body>
         <VStack align="stretch" gap="6">
           <HStack justify="space-between">

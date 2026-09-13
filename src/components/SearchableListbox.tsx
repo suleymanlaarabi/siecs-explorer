@@ -6,9 +6,9 @@ import {
   Listbox,
   Spinner,
   Text,
-} from "@chakra-ui/react";
-import { Search } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+} from '@chakra-ui/react';
+import { Search } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 export function SearchableListbox<T>({
   items,
@@ -19,12 +19,12 @@ export function SearchableListbox<T>({
   filter,
   renderItem,
   onChange,
-  emptyText = "No items found",
+  emptyText = 'No items found',
   isLoading,
   error,
 }: {
   items: T[];
-  value?: T;
+  value: T | undefined;
   searchPlaceholder: string;
   getKey: (item: T) => string | number;
   getLabel: (item: T) => string;
@@ -33,10 +33,10 @@ export function SearchableListbox<T>({
   onChange: (item: T | undefined) => void;
   emptyText?: string;
   isLoading?: boolean;
-  error?: string;
+  error?: string | undefined;
 }) {
-  const [search, setSearch] = useState("");
-  const normalizedSearch = search.trim().toLowerCase().replace(/^#/, "");
+  const [search, setSearch] = useState('');
+  const normalizedSearch = search.trim().toLowerCase().replace(/^#/, '');
   const filtered = useMemo(
     () =>
       filter
@@ -96,8 +96,8 @@ export function SearchableListbox<T>({
               minH="8"
               px="2"
               rounded="sm"
-              _hover={{ bg: "bg.subtle" }}
-              _selected={{ bg: "bg.muted" }}
+              _hover={{ bg: 'bg.subtle' }}
+              _selected={{ bg: 'bg.muted' }}
             >
               {renderItem ? (
                 renderItem(item)

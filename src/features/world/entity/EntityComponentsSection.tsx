@@ -1,15 +1,15 @@
-import { Button, EmptyState, Heading, HStack, VStack } from "@chakra-ui/react";
-import type { ReactNode } from "react";
-import type { EntityDetail, Schema } from "../../../client";
-import { AddComponentDialog } from "../AddComponentDialog";
-import { EntityComponentCard } from "./EntityComponentCard";
+import { Button, EmptyState, Heading, HStack, VStack } from '@chakra-ui/react';
+import type { ReactNode } from 'react';
+import type { EntityDetail, Schema } from '../../../client';
+import { AddComponentDialog } from '../AddComponentDialog';
+import { EntityComponentCard } from './EntityComponentCard';
 
 export function EntityComponentsSection({
   entity,
   schema,
 }: {
   entity: EntityDetail;
-  schema?: Schema;
+  schema?: Schema | undefined;
 }) {
   return (
     <Section

@@ -1,15 +1,15 @@
-import { Button, EmptyState, Heading, HStack, VStack } from "@chakra-ui/react";
-import type { ReactNode } from "react";
-import type { EntityDetail, Schema } from "../../../client";
-import { AddRelationDialog } from "../AddRelationDialog";
-import { EntityRelationCard } from "./EntityRelationCard";
+import { Button, EmptyState, Heading, HStack, VStack } from '@chakra-ui/react';
+import type { ReactNode } from 'react';
+import type { EntityDetail, Schema } from '../../../client';
+import { AddRelationDialog } from '../AddRelationDialog';
+import { EntityRelationCard } from './EntityRelationCard';
 
 export function EntityRelationsSection({
   entity,
   schema,
 }: {
   entity: EntityDetail;
-  schema?: Schema;
+  schema?: Schema | undefined;
 }) {
   return (
     <VStack align="stretch" gap="2">

@@ -1,4 +1,4 @@
-import type { Entity, EntityRef } from "../../client";
+import type { Entity, EntityRef } from '../../client';
 
 export function moveEntityToParent(children: Entity[], entity: Entity): Entity[] {
   return children.some((item) => sameEntity(item, entity))

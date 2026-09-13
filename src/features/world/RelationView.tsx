@@ -1,8 +1,8 @@
-import { useAtomValue } from "jotai";
-import { worldEditorSelectedRelationAtom } from "./atom";
-import type { Schema } from "../../client";
-import { Card, Heading, HStack, VStack } from "@chakra-ui/react";
-import { Badge } from "@chakra-ui/react/badge";
+import { useAtomValue } from 'jotai';
+import { worldEditorSelectedRelationAtom } from './atom';
+import type { Schema } from '../../client';
+import { Card, Heading, HStack, VStack } from '@chakra-ui/react';
+import { Badge } from '@chakra-ui/react/badge';
 
 type RelationInspectorProps = {
   schema: Schema;
@@ -10,11 +10,11 @@ type RelationInspectorProps = {
 };
 
 export function RelationInspector({ schema, relationId }: RelationInspectorProps) {
-  const relation = schema.relations.find((c) => c.id === relationId)!;
-
+  const relation = schema.relations.find((item) => item.id === relationId);
+  if (!relation) return null;
 
   return (
-    <Card.Root variant="outline" rounded={"none"} border={"none"} h={"full"}>
+    <Card.Root variant="outline" rounded={'none'} border={'none'} h={'full'}>
       <Card.Body>
         <VStack align="stretch" gap="6">
           <HStack justify="space-between">
@@ -22,8 +22,10 @@ export function RelationInspector({ schema, relationId }: RelationInspectorProps
           </HStack>
           <HStack>
             {relation.acyclic ? <Badge>Acyclic</Badge> : null}
-            <Badge>{relation.storage == 0 ? "Dense" : relation.storage == 1 ? "Depth" : "Target"}</Badge>
-            {relation.onDeleteTarget == 1 ? <Badge>Linked Spawn</Badge> : null}
+            <Badge>
+              {relation.storage === 0 ? 'Dense' : relation.storage === 1 ? 'Depth' : 'Target'}
+            </Badge>
+            {relation.onDeleteTarget === 1 ? <Badge>Linked Spawn</Badge> : null}
           </HStack>
         </VStack>
       </Card.Body>
@@ -39,9 +41,6 @@ export function RelationView() {
   }
 
   return (
-    <RelationInspector
-      schema={selectedRelation.schema}
-      relationId={selectedRelation.relation.id}
-    />
+    <RelationInspector schema={selectedRelation.schema} relationId={selectedRelation.relation.id} />
   );
 }

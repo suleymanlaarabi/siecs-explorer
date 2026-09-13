@@ -1,18 +1,18 @@
-import { Badge, Button, Field, HStack, Text, VStack } from "@chakra-ui/react";
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import type { EntityDetail, EntityRef, RelationDef, Schema } from "../../client";
-import { MutationDialog } from "../../components/MutationDialog";
-import { SearchableListbox } from "../../components/SearchableListbox";
-import { EntityPicker } from "./EntityPicker";
-import { getAddableRelations } from "./entityOptions";
-import { useSetRelation } from "./hooks/useEntityMutations";
+import { Badge, Button, Field, HStack, Text, VStack } from '@chakra-ui/react';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import type { EntityDetail, EntityRef, RelationDef, Schema } from '../../client';
+import { MutationDialog } from '../../components/MutationDialog';
+import { SearchableListbox } from '../../components/SearchableListbox';
+import { EntityPicker } from './EntityPicker';
+import { getAddableRelations } from './entityOptions';
+import { useSetRelation } from './hooks/useEntityMutations';
 
 export function AddRelationDialog({ entity, schema }: { entity: EntityDetail; schema: Schema }) {
   const [selectedId, setSelectedId] = useState<number>();
   const [target, setTarget] = useState<EntityRef>();
   const mutation = useSetRelation(entity);
-  const available = getAddableRelations(schema.relations, entity.relations, "");
+  const available = getAddableRelations(schema.relations, entity.relations, '');
   const selected = available.find((relation) => relation.id === selectedId);
 
   const reset = () => {
@@ -65,7 +65,7 @@ export function AddRelationDialog({ entity, schema }: { entity: EntityDetail; sc
         </Field.Root>
         {target ? (
           <Text textStyle="sm" color="fg.muted">
-            Selected: {target.name || "Entity"} #{target.index}
+            Selected: {target.name || 'Entity'} #{target.index}
           </Text>
         ) : null}
       </VStack>

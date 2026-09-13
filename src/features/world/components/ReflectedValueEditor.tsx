@@ -1,8 +1,8 @@
-import { Checkbox, Field, Input, Text, Textarea, VStack } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
-import type { ComponentDef, EditorType, EntityRef, Schema, TypeDef } from "../../../client";
-import { EntityPicker } from "../EntityPicker";
-import { parseEditorValue } from "./reflectedValue";
+import { Checkbox, Field, Input, Text, Textarea, VStack } from '@chakra-ui/react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ComponentDef, EditorType, EntityRef, Schema, TypeDef } from '../../../client';
+import { EntityPicker } from '../EntityPicker';
+import { parseEditorValue } from './reflectedValue';
 
 const EMPTY_ERRORS: Record<string, string> = {};
 
@@ -80,8 +80,8 @@ export function ReflectedValueEditor({
         }))
       : [
           {
-            key: "value",
-            label: "Value",
+            key: 'value',
+            label: 'Value',
             type: typeById.get(component.type),
             value,
           },
@@ -119,26 +119,26 @@ function EditorField({
   onEntityChange,
 }: {
   label: string;
-  type?: TypeDef;
+  type?: TypeDef | undefined;
   value: unknown;
-  rawValue?: string;
-  error?: string;
+  rawValue?: string | undefined;
+  error?: string | undefined;
   onChange: (value: string) => void;
   onBooleanChange: (value: boolean) => void;
   onEntityChange: (value: EntityRef) => void;
 }) {
-  if (!type || type.editor === "unsupported") {
+  if (!type || type.editor === 'unsupported') {
     return (
       <Field.Root>
         <Field.Label>{label}</Field.Label>
         <Text textStyle="sm" color="fg.muted">
-          Unsupported field type{type?.name ? `: ${type.name}` : ""}
+          Unsupported field type{type?.name ? `: ${type.name}` : ''}
         </Text>
       </Field.Root>
     );
   }
 
-  if (type.editor === "boolean") {
+  if (type.editor === 'boolean') {
     return (
       <Checkbox.Root
         checked={value === true}
@@ -151,12 +151,12 @@ function EditorField({
     );
   }
 
-  if (type.editor === "entity") {
+  if (type.editor === 'entity') {
     return (
       <Field.Root invalid={Boolean(error)}>
         <Field.Label>{label}</Field.Label>
         <EntityPicker
-          value={typeof value === "number" ? value : undefined}
+          value={typeof value === 'number' ? value : undefined}
           onChange={onEntityChange}
           label={`Select entity for ${label}`}
         />
@@ -168,14 +168,14 @@ function EditorField({
   const displayValue = rawValue ?? formatEditorValue(type.editor, value);
   return (
     <Field.Root
-      orientation={type.editor === "object" ? "vertical" : "horizontal"}
+      orientation={type.editor === 'object' ? 'vertical' : 'horizontal'}
       invalid={Boolean(error)}
     >
       <Field.Label>{label}</Field.Label>
       <Text textStyle="xs" color="fg.muted">
         {type.name}
       </Text>
-      {type.editor === "object" ? (
+      {type.editor === 'object' ? (
         <Textarea
           fontFamily="mono"
           fontSize="sm"
@@ -186,7 +186,7 @@ function EditorField({
       ) : (
         <Input
           ml="1"
-          type={type.editor === "number" ? "number" : "text"}
+          type={type.editor === 'number' ? 'number' : 'text'}
           value={displayValue}
           onChange={(event) => onChange(event.target.value)}
           step="any"
@@ -213,15 +213,15 @@ function createRawValues(component: ComponentDef, value: unknown, typeById: Map<
 }
 
 function formatEditorValue(editor: EditorType, value: unknown) {
-  if (editor === "object") {
-    if (value === undefined) return "";
+  if (editor === 'object') {
+    if (value === undefined) return '';
     try {
-      return JSON.stringify(value, null, 2) ?? "";
+      return JSON.stringify(value, null, 2) ?? '';
     } catch {
-      return "";
+      return '';
     }
   }
-  return value === undefined || value === null ? "" : String(value);
+  return value === undefined || value === null ? '' : String(value);
 }
 
 function updateObjectField(value: unknown, key: string, nextValue: unknown) {
@@ -240,5 +240,5 @@ function removeKey<T>(object: Record<string, T>, key: string) {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

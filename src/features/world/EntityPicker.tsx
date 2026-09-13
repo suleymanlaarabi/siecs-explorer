@@ -1,25 +1,25 @@
-import { useState } from "react";
-import { Button, Popover, Portal, Text } from "@chakra-ui/react";
-import { ChevronDown } from "lucide-react";
-import type { EntityLike, EntityRef } from "../../client";
-import { SearchableListbox } from "../../components/SearchableListbox";
-import { useAllEntities } from "./entityQueries";
+import { useState } from 'react';
+import { Button, Popover, Portal, Text } from '@chakra-ui/react';
+import { ChevronDown } from 'lucide-react';
+import type { EntityLike, EntityRef } from '../../client';
+import { SearchableListbox } from '../../components/SearchableListbox';
+import { useAllEntities } from './entityQueries';
 
 export function EntityPicker({
   value,
   onChange,
   disabled,
-  label = "Select entity",
+  label = 'Select entity',
 }: {
-  value?: EntityLike;
+  value?: EntityLike | undefined;
   onChange: (entity: EntityRef) => void;
-  disabled?: boolean;
-  label?: string;
+  disabled?: boolean | undefined;
+  label?: string | undefined;
 }) {
   const entitiesQuery = useAllEntities();
   const [open, setOpen] = useState(false);
   const selected =
-    typeof value === "object"
+    typeof value === 'object'
       ? value
       : entitiesQuery.data?.find((entity) => entity.index === value);
 
@@ -27,7 +27,7 @@ export function EntityPicker({
     <Popover.Root
       open={open}
       onOpenChange={(details) => setOpen(details.open)}
-      positioning={{ placement: "bottom-start", sameWidth: true }}
+      positioning={{ placement: 'bottom-start', sameWidth: true }}
     >
       <Popover.Trigger asChild>
         <Button
@@ -40,8 +40,8 @@ export function EntityPicker({
         >
           <Text truncate>
             {selected
-              ? `${selected.name || "Entity"} #${selected.index}`
-              : typeof value === "number"
+              ? `${selected.name || 'Entity'} #${selected.index}`
+              : typeof value === 'number'
                 ? `Entity #${value}`
                 : label}
           </Text>
@@ -53,7 +53,7 @@ export function EntityPicker({
           <Popover.Content maxW="sm">
             <Popover.Body p="2">
               <SearchableListbox
-                key={open ? "open" : "closed"}
+                key={open ? 'open' : 'closed'}
                 items={entitiesQuery.data ?? []}
                 value={selected}
                 searchPlaceholder="Search entities..."
@@ -64,7 +64,7 @@ export function EntityPicker({
                   String(entity.index).includes(search)
                 }
                 isLoading={entitiesQuery.isLoading}
-                error={entitiesQuery.error ? "Unable to load entities" : undefined}
+                error={entitiesQuery.error ? 'Unable to load entities' : undefined}
                 onChange={(entity) => {
                   if (entity) {
                     onChange(entity);
@@ -73,7 +73,7 @@ export function EntityPicker({
                 }}
                 renderItem={(entity) => (
                   <Text truncate>
-                    {entity.name || "Unnamed entity"}{" "}
+                    {entity.name || 'Unnamed entity'}{' '}
                     <Text as="span" color="fg.muted">
                       #{entity.index}
                     </Text>
