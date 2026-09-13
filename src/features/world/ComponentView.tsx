@@ -1,6 +1,7 @@
 import { useAtomValue } from 'jotai';
-import { worldEditorSelectedComponentAtom } from './atom';
-import type { Schema } from '../../client';
+import { worldSelectionAtom } from './model/worldEditorState';
+import type { Schema } from '../../lib/siecs/types';
+import { useSchemaQuery } from './api/schemaQueries';
 import { Card, Heading, HStack, Text, VStack } from '@chakra-ui/react';
 
 type ComponentInspectorProps = {
@@ -41,16 +42,12 @@ export function ComponentInspector({ schema, componentId }: ComponentInspectorPr
 }
 
 export function ComponentView() {
-  const selectedComponent = useAtomValue(worldEditorSelectedComponentAtom);
+  const selection = useAtomValue(worldSelectionAtom);
+  const { data: schema } = useSchemaQuery();
 
-  if (!selectedComponent) {
+  if (selection?.type !== 'component' || !schema) {
     return null;
   }
 
-  return (
-    <ComponentInspector
-      schema={selectedComponent.schema}
-      componentId={selectedComponent.component.id}
-    />
-  );
+  return <ComponentInspector schema={schema} componentId={selection.id} />;
 }

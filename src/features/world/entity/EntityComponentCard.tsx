@@ -1,8 +1,8 @@
 import { Badge, Box, Code, HStack, Text } from '@chakra-ui/react';
-import type { EntityComponent, EntityDetail, Schema } from '../../../client';
+import type { EntityComponent, EntityDetail, Schema } from '../../../lib/siecs/types';
 import { ConfirmDeleteAction } from '../../../components/ConfirmDeleteAction';
 import { EntityComponentEditor } from '../components/EntityComponentEditor';
-import { useRemoveComponent } from '../hooks/useEntityMutations';
+import { useRemoveComponent } from '../api/entityMutations';
 
 export function EntityComponentCard({
   entity,
@@ -43,7 +43,9 @@ export function EntityComponentCard({
             entityComponent={component}
           />
         </Box>
-      ) : component.value !== null && component.value !== undefined && Object.keys(component.value).length > 0 ? (
+      ) : component.value !== null &&
+        component.value !== undefined &&
+        Object.keys(component.value).length > 0 ? (
         <Box px="3" py="2" borderTopWidth="1px">
           <ComponentValue value={component.value} />
         </Box>

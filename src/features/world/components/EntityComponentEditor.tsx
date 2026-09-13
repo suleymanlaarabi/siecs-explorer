@@ -1,10 +1,10 @@
 import { HStack, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Check, CircleAlert } from 'lucide-react';
 import { useState } from 'react';
-import type { ComponentDef, EntityComponent, EntityRef, Schema } from '../../../client';
+import type { ComponentDef, EntityComponent, EntityRef, Schema } from '../../../lib/siecs/types';
 import { useDebouncedAutosave } from '../../../hooks/useDebouncedAutosave';
-import { ReflectedValueEditor } from './ReflectedValueEditor';
-import { useSetComponent } from '../hooks/useEntityMutations';
+import { ReflectedValueEditor } from '../editor/ReflectedValueEditor';
+import { useSetComponent } from '../api/entityMutations';
 
 export function EntityComponentEditor({
   entity,

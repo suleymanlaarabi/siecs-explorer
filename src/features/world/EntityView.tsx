@@ -1,19 +1,19 @@
 import { Card, EmptyState, Heading, HStack, Skeleton, Text, VStack } from '@chakra-ui/react';
 import { useAtomValue } from 'jotai';
 import type { ReactNode } from 'react';
-import type { EntityRef } from '../../client';
-import { useSchema } from '../../hooks/useSchema';
-import { worldEditorSelectedEntityAtom } from './atom';
+import type { EntityRef } from '../../lib/siecs/types';
+import { useSchemaQuery } from './api/schemaQueries';
+import { worldSelectionAtom } from './model/worldEditorState';
 import { EntityInspector } from './entity/EntityInspector';
-import { useEntity } from './entityQueries';
+import { useEntity } from './api/entityQueries';
 
 export function EntityView() {
-  const entity = useAtomValue(worldEditorSelectedEntityAtom);
-  return entity ? <EntityDetail entity={entity} /> : null;
+  const selection = useAtomValue(worldSelectionAtom);
+  return selection?.type === 'entity' ? <EntityDetail entity={selection.entity} /> : null;
 }
 
 function EntityDetail({ entity }: { entity: EntityRef }) {
-  const schemaQuery = useSchema();
+  const schemaQuery = useSchemaQuery();
   const { data, error, isLoading } = useEntity(entity);
 
   if (isLoading) return <EntityDetailShell entity={entity} loading />;

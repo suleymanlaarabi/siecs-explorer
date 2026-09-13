@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button, Popover, Portal, Text } from '@chakra-ui/react';
 import { ChevronDown } from 'lucide-react';
-import type { EntityLike, EntityRef } from '../../client';
+import type { EntityLike, EntityRef } from '../../lib/siecs/types';
 import { SearchableListbox } from '../../components/SearchableListbox';
-import { useAllEntities } from './entityQueries';
+import { useAllEntities } from './api/entityQueries';
 
 export function EntityPicker({
   value,

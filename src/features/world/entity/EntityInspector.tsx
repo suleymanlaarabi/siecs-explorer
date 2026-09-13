@@ -1,5 +1,5 @@
 import { Badge, Box, Card, Heading, HStack, Separator, Text, VStack } from '@chakra-ui/react';
-import type { EntityDetail, Schema } from '../../../client';
+import type { EntityDetail, Schema } from '../../../lib/siecs/types';
 import { EntityComponentsSection } from './EntityComponentsSection';
 import { EntityRelationsSection } from './EntityRelationsSection';
 

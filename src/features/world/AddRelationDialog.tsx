@@ -1,12 +1,12 @@
 import { Badge, Button, Field, HStack, Text, VStack } from '@chakra-ui/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import type { EntityDetail, EntityRef, RelationDef, Schema } from '../../client';
+import type { EntityDetail, EntityRef, RelationDef, Schema } from '../../lib/siecs/types';
 import { MutationDialog } from '../../components/MutationDialog';
 import { SearchableListbox } from '../../components/SearchableListbox';
 import { EntityPicker } from './EntityPicker';
 import { getAddableRelations } from './entityOptions';
-import { useSetRelation } from './hooks/useEntityMutations';
+import { useSetRelation } from './api/entityMutations';
 
 export function AddRelationDialog({ entity, schema }: { entity: EntityDetail; schema: Schema }) {
   const [selectedId, setSelectedId] = useState<number>();

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { ComponentDef, EntityDetail, RelationDef } from '../src/client';
+import type { ComponentDef, EntityDetail, RelationDef } from '../src/lib/siecs/types';
 import {
   getAddableComponents,
   getAddableRelations,

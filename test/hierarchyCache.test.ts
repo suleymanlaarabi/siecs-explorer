@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test';
-import type { Entity } from '../src/client';
+import type { Entity } from '../src/lib/siecs/types';
 import {
   markEntityHasChildren,
   moveEntityToParent,
   moveEntityToRoots,
   removeEntityFromParent,
-} from '../src/features/world/hierarchyCache';
+} from '../src/features/world/entities/hierarchyCache';
 
 const root: Entity = { name: 'Root', index: 1, generation: 1, hasChildren: false };
 const firstParent: Entity = { name: 'First', index: 2, generation: 1, hasChildren: true };

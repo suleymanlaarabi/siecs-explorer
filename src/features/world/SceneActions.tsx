@@ -3,7 +3,7 @@ import { Download, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toaster } from '../../components/ui/toaster-provider';
 import { Tooltip } from './tooltip';
-import { useSceneActions } from './hooks/useSceneActions';
+import { useSceneActions } from './scene/useSceneActions';
 
 export function SceneActions() {
   const fileInputRef = useRef<HTMLInputElement>(null);

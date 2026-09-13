@@ -1,6 +1,6 @@
-import { Button, EmptyState, Heading, HStack, VStack } from '@chakra-ui/react';
-import type { ReactNode } from 'react';
-import type { EntityDetail, Schema } from '../../../client';
+import { Button, VStack } from '@chakra-ui/react';
+import type { EntityDetail, Schema } from '../../../lib/siecs/types';
+import { InspectorSection } from '../../../shared/components/InspectorSection';
 import { AddComponentDialog } from '../AddComponentDialog';
 import { EntityComponentCard } from './EntityComponentCard';
 
@@ -12,7 +12,7 @@ export function EntityComponentsSection({
   schema?: Schema | undefined;
 }) {
   return (
-    <Section
+    <InspectorSection
       title="Components"
       action={
         schema ? (
@@ -23,53 +23,19 @@ export function EntityComponentsSection({
           </Button>
         )
       }
+      empty={entity.components.length === 0}
+      emptyText="No components"
     >
-      {entity.components.length > 0 ? (
-        <VStack align="stretch" gap="2">
-          {entity.components.map((component) => (
-            <EntityComponentCard
-              key={component.id}
-              entity={entity}
-              schema={schema}
-              component={component}
-            />
-          ))}
-        </VStack>
-      ) : (
-        <EmptyValue>No components</EmptyValue>
-      )}
-    </Section>
-  );
-}
-
-function Section({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <VStack align="stretch" gap="2">
-      <HStack justify="space-between" minH="7">
-        <Heading size="sm">{title}</Heading>
-        {action}
-      </HStack>
-      {children}
-    </VStack>
-  );
-}
-
-function EmptyValue({ children }: { children: ReactNode }) {
-  return (
-    <EmptyState.Root size="sm" py="4">
-      <EmptyState.Content>
-        <EmptyState.Title color="fg.muted" textStyle="sm">
-          {children}
-        </EmptyState.Title>
-      </EmptyState.Content>
-    </EmptyState.Root>
+      <VStack align="stretch" gap="2">
+        {entity.components.map((component) => (
+          <EntityComponentCard
+            key={component.id}
+            entity={entity}
+            schema={schema}
+            component={component}
+          />
+        ))}
+      </VStack>
+    </InspectorSection>
   );
 }

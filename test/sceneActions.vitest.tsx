@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { siecsClient } from '../src/client';
+import { siecsClient } from '../src/lib/siecs/client';
 import { SceneActions } from '../src/features/world/SceneActions';
-import { entityKeys } from '../src/features/world/entityQueries';
+import { entityKeys } from '../src/features/world/api/queryKeys';
 
 const { downloadBlobMock } = vi.hoisted(() => ({ downloadBlobMock: vi.fn() }));
 
@@ -59,9 +59,9 @@ describe('SceneActions', () => {
     await user.click(screen.getByRole('button', { name: 'Load', exact: true }));
 
     await waitFor(() => expect(load).toHaveBeenCalledWith(file));
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: entityKeys.roots });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: entityKeys.roots() });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: entityKeys.list() });
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: entityKeys.all });
-    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: entityKeys.entity });
   });
 
   test('downloads a saved scene and prevents a second operation while pending', async () => {

@@ -1,17 +1,17 @@
 import { useAtomValue } from 'jotai';
 import { ComponentView } from './ComponentView';
-import { worldEditorStateAtom } from './atom';
+import { worldSelectionAtom } from './model/worldEditorState';
 import { EntityView } from './EntityView';
 import { RelationView } from './RelationView';
 
 export function WorldEditorPaneRight() {
-  const editorState = useAtomValue(worldEditorStateAtom);
+  const selection = useAtomValue(worldSelectionAtom);
 
-  return editorState === 'entity' ? (
+  return selection?.type === 'entity' ? (
     <EntityView />
-  ) : editorState === 'relation' ? (
+  ) : selection?.type === 'relation' ? (
     <RelationView />
-  ) : (
+  ) : selection?.type === 'component' ? (
     <ComponentView />
-  );
+  ) : null;
 }

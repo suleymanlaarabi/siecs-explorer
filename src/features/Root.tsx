@@ -2,8 +2,7 @@ import { Flex, IconButton, Image, Status, VStack } from '@chakra-ui/react';
 import { Pause, Play } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import { useToggle } from '../hooks/useToggle';
-import { useInterval } from '../hooks/useInterval';
-import { siecsClient } from '../client';
+import { useHealthQuery } from './world/api/healthQueries';
 import { SceneActions } from './world/SceneActions';
 
 function PlayButton() {
@@ -17,22 +16,10 @@ function PlayButton() {
 }
 
 function ConnectionStatus() {
-  const [status, toggle] = useToggle(false);
-
-  useInterval(
-    async () => {
-      if (status !== (await siecsClient.health())) {
-        toggle();
-      }
-    },
-    2000,
-    {
-      immediate: true,
-    },
-  );
+  const { data: connected = false } = useHealthQuery();
 
   return (
-    <Status.Root mr={1} colorPalette={status ? 'green' : 'red'}>
+    <Status.Root mr={1} colorPalette={connected ? 'green' : 'red'}>
       <Status.Indicator />
     </Status.Root>
   );

@@ -1,12 +1,12 @@
 import { Badge, Box, Button, Text, VStack } from '@chakra-ui/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import type { EntityDetail, Schema } from '../../client';
+import type { EntityDetail, Schema } from '../../lib/siecs/types';
 import { MutationDialog } from '../../components/MutationDialog';
 import { SearchableListbox } from '../../components/SearchableListbox';
-import { ReflectedValueEditor } from './components/ReflectedValueEditor';
+import { ReflectedValueEditor } from './editor/ReflectedValueEditor';
 import { getAddableComponents } from './entityOptions';
-import { useAddComponent } from './hooks/useEntityMutations';
+import { useAddComponent } from './api/entityMutations';
 
 export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; schema: Schema }) {
   const [selectedId, setSelectedId] = useState<number>();

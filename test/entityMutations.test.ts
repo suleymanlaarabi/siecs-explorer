@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import type { EntityDetail } from '../src/client';
+import type { EntityDetail } from '../src/lib/siecs/types';
 import {
   addComponentToEntity,
   removeComponentFromEntity,
   removeRelationFromEntity,
   setComponentOnEntity,
   setRelationOnEntity,
-} from '../src/features/world/hooks/useEntityMutations';
+} from '../src/features/world/entities/entityCache';
 
 const entity: EntityDetail = {
   name: 'Player',

@@ -1,4 +1,9 @@
-import type { ComponentDef, EntityComponent, EntityRelation, RelationDef } from '../../client';
+import type {
+  ComponentDef,
+  EntityComponent,
+  EntityRelation,
+  RelationDef,
+} from '../../lib/siecs/types';
 
 export function hasComponentData(value: unknown) {
   return value !== null && value !== undefined;

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
-import { SiecsClient, SiecsError } from '../src/client';
+import { SiecsClient } from '../src/lib/siecs/client';
+import { SiecsError } from '../src/lib/siecs/errors';
 
 const originalFetch = globalThis.fetch;
 

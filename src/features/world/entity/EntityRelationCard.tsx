@@ -1,11 +1,11 @@
 import { Badge, Box, HStack, IconButton, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useSetAtom } from 'jotai';
 import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
-import type { EntityDetail, EntityRelation, Schema } from '../../../client';
+import type { EntityDetail, EntityRelation, Schema } from '../../../lib/siecs/types';
 import { ConfirmDeleteAction } from '../../../components/ConfirmDeleteAction';
 import { EntityPicker } from '../EntityPicker';
-import { worldEditorSelectedEntityAtom } from '../atom';
-import { useRemoveRelation, useSetRelation } from '../hooks/useEntityMutations';
+import { worldSelectionAtom } from '../model/worldEditorState';
+import { useRemoveRelation, useSetRelation } from '../api/entityMutations';
 
 export function EntityRelationCard({
   entity,
@@ -16,7 +16,7 @@ export function EntityRelationCard({
   schema?: Schema | undefined;
   relation: EntityRelation;
 }) {
-  const setSelectedEntity = useSetAtom(worldEditorSelectedEntityAtom);
+  const setSelection = useSetAtom(worldSelectionAtom);
   const setRelation = useSetRelation(entity);
   const remove = useRemoveRelation(entity);
   const definition = schema?.relations.find((item) => item.id === relation.id);
@@ -63,7 +63,7 @@ export function EntityRelationCard({
             variant="outline"
             flex="none"
             aria-label={`Open ${relation.target.name || `Entity ${relation.target.index}`}`}
-            onClick={() => setSelectedEntity(relation.target)}
+            onClick={() => setSelection({ type: 'entity', entity: relation.target })}
           >
             <ExternalLinkIcon size={14} aria-hidden="true" />
           </IconButton>

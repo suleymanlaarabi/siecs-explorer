@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parseEditorValue } from '../src/features/world/components/reflectedValue';
+import { parseEditorValue } from '../src/features/world/editor/reflectedValue';
 
 describe('ReflectedValueEditor parsing', () => {
   test('parses numbers and rejects invalid numbers', () => {
