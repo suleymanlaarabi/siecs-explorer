@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { worldEditorSelectedComponentAtom } from "./atom";
 import type { Schema } from "../../client";
-import { Badge, Card, Heading, HStack, Text, VStack } from "@chakra-ui/react";
+import { Card, Heading, HStack, Text, VStack } from "@chakra-ui/react";
 
 type ComponentInspectorProps = {
   schema: Schema;
@@ -19,8 +19,6 @@ export function ComponentInspector({ schema, componentId }: ComponentInspectorPr
         <VStack align="stretch" gap="6">
           <HStack justify="space-between">
             <Heading size="md">{component.name}</Heading>
-
-            <Badge variant="surface">{component.isRelation ? "Relation" : "Component"}</Badge>
           </HStack>
 
           {component.fields.length > 0 ? (
