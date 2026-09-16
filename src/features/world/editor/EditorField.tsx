@@ -25,6 +25,7 @@ export function EditorField({
   onBooleanChange: (value: boolean) => void;
   onEntityChange: (value: EntityRef) => void;
 }) {
+
   if (!type || type.editor === 'unsupported') {
     return (
       <Field.Root>

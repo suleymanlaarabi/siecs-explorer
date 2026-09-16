@@ -20,21 +20,23 @@ export function ReflectedValueEditor({
 
   return (
     <VStack align="stretch" gap="4">
-      {editor.fields.map((field) => (
-        <EditorField
-          key={field.key}
-          label={field.label}
-          type={field.type}
-          value={field.value}
-          rawValue={editor.rawValues[field.key]}
-          error={editor.errors[field.key]}
-          onChange={(raw) => field.type && editor.update(field.key, field.type, raw)}
-          onBooleanChange={(nextValue) => editor.updateBoolean(field.key, nextValue)}
-          onEntityChange={(nextValue) =>
-            field.type && editor.update(field.key, field.type, String(nextValue.index))
-          }
-        />
-      ))}
+      {editor.fields.map((field) => {
+        return (
+          <EditorField
+            key={field.key}
+            label={field.label}
+            type={field.type}
+            value={field.value}
+            rawValue={editor.rawValues[field.key]}
+            error={editor.errors[field.key]}
+            onChange={(raw) => field.type && editor.update(field.key, field.type, raw)}
+            onBooleanChange={(nextValue) => editor.updateBoolean(field.key, nextValue)}
+            onEntityChange={(nextValue) =>
+              field.type && editor.update(field.key, field.type, String(nextValue.index))
+            }
+          />
+        )
+      })}
     </VStack>
   );
 }

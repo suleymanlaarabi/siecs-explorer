@@ -18,13 +18,10 @@ export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; s
     [entity.components, schema.components],
   );
   const selected = schema.components.find((component) => component.id === selectedId);
-  const typeById = useMemo(
-    () => new Map(schema.types.map((type) => [type.id, type])),
-    [schema.types],
-  );
+
   const editable = Boolean(
     selected &&
-    (selected.fields.length > 0 || typeById.get(selected.type)?.editor !== 'unsupported'),
+    selected.fields.length > 0 ,
   );
 
   const reset = () => {
@@ -37,7 +34,7 @@ export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; s
     <MutationDialog
       title="Add component"
       trigger={
-        <Button size="xs" variant="ghost" aria-label="Add component">
+        <Button size="xs" variant="ghost">
           <Plus size={14} aria-hidden="true" />
           Add
         </Button>

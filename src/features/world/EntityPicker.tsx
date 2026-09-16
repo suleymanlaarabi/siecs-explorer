@@ -7,17 +7,23 @@ import { useAllEntities } from './api/entityQueries';
 
 export function EntityPicker({
   value,
+  exclude,
   onChange,
   disabled,
   label = 'Select entity',
 }: {
   value?: EntityLike | undefined;
+  exclude?: EntityRef | undefined;
   onChange: (entity: EntityRef) => void;
   disabled?: boolean | undefined;
   label?: string | undefined;
 }) {
   const entitiesQuery = useAllEntities();
   const [open, setOpen] = useState(false);
+  const entities = (entitiesQuery.data ?? []).filter(
+    (entity) =>
+      !exclude || entity.index !== exclude.index || entity.generation !== exclude.generation,
+  );
   const selected =
     typeof value === 'object'
       ? value
@@ -54,7 +60,7 @@ export function EntityPicker({
             <Popover.Body p="2">
               <SearchableListbox
                 key={open ? 'open' : 'closed'}
-                items={entitiesQuery.data ?? []}
+                items={entities}
                 value={selected}
                 searchPlaceholder="Search entities..."
                 getKey={(entity) => `${entity.index}:${entity.generation}`}

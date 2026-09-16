@@ -23,8 +23,6 @@ export function EntityComponentsSection({
           </Button>
         )
       }
-      empty={entity.components.length === 0}
-      emptyText="No components"
     >
       <VStack align="stretch" gap="2">
         {entity.components.map((component) => (

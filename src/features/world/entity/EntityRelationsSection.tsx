@@ -23,8 +23,6 @@ export function EntityRelationsSection({
           </Button>
         )
       }
-      empty={entity.relations.length === 0}
-      emptyText="No relations"
     >
       <VStack align="stretch" gap="2">
         {entity.relations.map((relation) => (

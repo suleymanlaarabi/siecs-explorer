@@ -12,7 +12,7 @@ import { initialize as initializeExtensions } from 'vscode/extensions';
 import { initialize as initializeServices } from 'vscode/services';
 import { useColorMode } from '../../components/ui/color-mode-hooks';
 import { createCppWorkspace, headerSourcesAtom, loadWorkspaceHeaders } from './headers';
-import { cppCodeAtom, cppRunStatusAtom, useRunCppModule } from './runCpp';
+import { cppCodeAtom, useRunCppModule } from './runCpp';
 
 type LspStatus = { tone: 'error' | 'success' | 'warning'; message: string };
 
@@ -173,7 +173,6 @@ export function CppEditor() {
     message: 'Starting C++ editor…',
   });
   const headerSources = useAtomValue(headerSourcesAtom);
-  const runStatus = useAtomValue(cppRunStatusAtom);
   const setCppCode = useSetAtom(cppCodeAtom);
   const { pending: runPending, run } = useRunCppModule();
   const { colorMode } = useColorMode();
@@ -348,7 +347,6 @@ export function CppEditor() {
     };
   }, [editorReady, headerSources]);
 
-  const displayedStatus = languageReady ? (runStatus ?? status) : status;
 
   return (
     <Box position="relative" boxSize="full" minH={0} overflow="hidden">
@@ -396,27 +394,6 @@ export function CppEditor() {
       >
         {runPending ? <Spinner size="sm" /> : <Play />}
       </IconButton>
-      {languageReady ? (
-        <Text
-          position="absolute"
-          right="3"
-          bottom="2"
-          px="2"
-          py="2"
-          maxW="70%"
-          maxH="40%"
-          overflow="auto"
-          whiteSpace="pre-wrap"
-          rounded="sm"
-          bg="bg.panel"
-          borderWidth="1px"
-          textStyle="xs"
-          color={`fg.${displayedStatus.tone}`}
-          aria-live="polite"
-        >
-          {displayedStatus.message}
-        </Text>
-      ) : null}
     </Box>
   );
 }

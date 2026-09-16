@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { ComponentDef, Schema, TypeDef } from '../../../lib/siecs/types';
+import { useEffect, useMemo, useState } from "react";
+import type { ComponentDef, Schema, TypeDef } from "../../../lib/siecs/types";
 import {
   createRawValues,
   getObjectField,
   parseEditorValue,
   removeKey,
   updateObjectField,
-} from './reflectedValue';
+} from "./reflectedValue";
 
 const EMPTY_ERRORS: Record<string, string> = {};
 
@@ -31,15 +31,26 @@ export function useReflectedValueEditor({
     value,
     values: createRawValues(component, value, typeById),
   }));
-  const [errorState, setErrorState] = useState(() => ({ value, errors: EMPTY_ERRORS }));
+  const [errorState, setErrorState] = useState(() => ({
+    value,
+    errors: EMPTY_ERRORS,
+  }));
   const rawValues =
-    rawState.value === value ? rawState.values : createRawValues(component, value, typeById);
+    rawState.value === value
+      ? rawState.values
+      : createRawValues(component, value, typeById);
   const errors = errorState.value === value ? errorState.errors : EMPTY_ERRORS;
-  useEffect(() => onValidityChange(Object.keys(errors).length === 0), [errors, onValidityChange]);
+  useEffect(
+    () => onValidityChange(Object.keys(errors).length === 0),
+    [errors, onValidityChange],
+  );
   const update = (key: string, type: TypeDef, raw: string) => {
     setRawState((current) => ({
       value,
-      values: { ...(current.value === value ? current.values : rawValues), [key]: raw },
+      values: {
+        ...(current.value === value ? current.values : rawValues),
+        [key]: raw,
+      },
     }));
     const parsed = parseEditorValue(type.editor, raw);
     if (!parsed.ok) {
@@ -54,18 +65,30 @@ export function useReflectedValueEditor({
     }
     setErrorState((current) => ({
       value,
-      errors: removeKey(current.value === value ? current.errors : EMPTY_ERRORS, key),
+      errors: removeKey(
+        current.value === value ? current.errors : EMPTY_ERRORS,
+        key,
+      ),
     }));
     onChange(
-      component.fields.length === 0 ? parsed.value : updateObjectField(value, key, parsed.value),
+      component.fields.length === 0
+        ? parsed.value
+        : updateObjectField(value, key, parsed.value),
     );
   };
   const updateBoolean = (key: string, nextValue: boolean) => {
     setErrorState((current) => ({
       value,
-      errors: removeKey(current.value === value ? current.errors : EMPTY_ERRORS, key),
+      errors: removeKey(
+        current.value === value ? current.errors : EMPTY_ERRORS,
+        key,
+      ),
     }));
-    onChange(component.fields.length === 0 ? nextValue : updateObjectField(value, key, nextValue));
+    onChange(
+      component.fields.length === 0
+        ? nextValue
+        : updateObjectField(value, key, nextValue),
+    );
   };
   const fields =
     component.fields.length > 0
@@ -75,6 +98,6 @@ export function useReflectedValueEditor({
           type: typeById.get(field.type),
           value: getObjectField(value, field.name),
         }))
-      : [{ key: 'value', label: 'Value', type: typeById.get(component.type), value }];
+      : [];
   return { fields, rawValues, errors, update, updateBoolean };
 }

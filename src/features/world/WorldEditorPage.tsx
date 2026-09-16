@@ -2,6 +2,7 @@ import { Splitter } from '@chakra-ui/react';
 import { CppEditor } from '../code/CppEditor';
 import { WorldEditorPaneLeft } from './WorldEditorPaneLeft';
 import { WorldEditorPaneRight } from './WorldEditorPaneRight';
+import { Tabs } from '@chakra-ui/react/tabs';
 
 export function WorldEditorPage() {
   return (
@@ -17,7 +18,19 @@ export function WorldEditorPage() {
       </Splitter.Panel>
       <Splitter.ResizeTrigger id="a:b" />
       <Splitter.Panel id="b">
-        <CppEditor />
+        <Tabs.Root defaultValue="script" h="full" w="full" p={0} m={0}>
+             <Tabs.List>
+               <Tabs.Trigger value="script">
+                 script
+               </Tabs.Trigger>
+               <Tabs.Trigger value="scene">
+                 scene
+               </Tabs.Trigger>
+             </Tabs.List>
+             <Tabs.Content p={0} m={0} h="full" w="full" value="script"><CppEditor /></Tabs.Content>
+             <Tabs.Content value="scene"></Tabs.Content>
+           </Tabs.Root>
+
       </Splitter.Panel>
       <Splitter.ResizeTrigger id="b:c" />
 

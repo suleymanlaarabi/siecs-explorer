@@ -96,8 +96,6 @@ export function SearchableListbox<T>({
               minH="8"
               px="2"
               rounded="sm"
-              _hover={{ bg: 'bg.subtle' }}
-              _selected={{ bg: 'bg.muted' }}
             >
               {renderItem ? (
                 renderItem(item)

@@ -46,6 +46,7 @@ export function EntityRelationCard({
           <Box flex="1" minW="0">
             <EntityPicker
               value={relation.target}
+              exclude={entity}
               disabled={setRelation.isPending || remove.isPending}
               label={`Change target for ${definition?.name ?? relation.name}`}
               onChange={(target) => {

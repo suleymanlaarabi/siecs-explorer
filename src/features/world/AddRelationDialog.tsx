@@ -58,6 +58,7 @@ export function AddRelationDialog({ entity, schema }: { entity: EntityDetail; sc
           <Field.Label>Target</Field.Label>
           <EntityPicker
             value={target}
+            exclude={entity}
             onChange={setTarget}
             disabled={!selected || mutation.isPending}
             label="Search entity..."
