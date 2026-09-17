@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 public/clangd/clangd.wasm
+public/clangd/clangd.js
