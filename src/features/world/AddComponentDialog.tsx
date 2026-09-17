@@ -5,6 +5,7 @@ import type { EntityDetail, Schema } from '../../lib/siecs/types';
 import { MutationDialog } from '../../components/MutationDialog';
 import { SearchableListbox } from '../../components/SearchableListbox';
 import { ReflectedValueEditor } from './editor/ReflectedValueEditor';
+import { createComponentDraft } from './editor/reflectedValue';
 import { getAddableComponents } from './entityOptions';
 import { useAddComponent } from './api/entityMutations';
 
@@ -18,11 +19,12 @@ export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; s
     [entity.components, schema.components],
   );
   const selected = schema.components.find((component) => component.id === selectedId);
-
-  const editable = Boolean(
-    selected &&
-    selected.fields.length > 0 ,
+  const typeById = useMemo(
+    () => new Map(schema.types.map((type) => [type.id, type])),
+    [schema.types],
   );
+
+  const editable = Boolean(selected && selected.fields.length > 0);
 
   const reset = () => {
     setSelectedId(undefined);
@@ -61,7 +63,7 @@ export function AddComponentDialog({ entity, schema }: { entity: EntityDetail; s
           emptyText="No components available"
           onChange={(component) => {
             setSelectedId(component?.id);
-            setDraft(component?.fields.length ? {} : undefined);
+            setDraft(component ? createComponentDraft(component, typeById) : undefined);
             setValid(true);
           }}
           renderItem={(component) => (

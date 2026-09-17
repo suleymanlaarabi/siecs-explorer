@@ -3,7 +3,7 @@ import type { ComponentDef, EditorType, TypeDef } from '../../../lib/siecs/types
 export type ParsedValue = { ok: true; value: unknown } | { ok: false; error: string };
 
 export function parseEditorValue(editor: EditorType, raw: string): ParsedValue {
-  if (editor === 'string') return { ok: true, value: raw };
+  if (editor === 'string' || editor === 'enum') return { ok: true, value: raw };
   if (editor === 'number' || editor === 'entity') {
     if (raw.trim() === '') return { ok: false, error: 'A number is required' };
     const value = Number(raw);
@@ -22,6 +22,22 @@ export function parseEditorValue(editor: EditorType, raw: string): ParsedValue {
     }
   }
   return { ok: false, error: 'This field cannot be edited' };
+}
+
+export function createComponentDraft(
+  component: ComponentDef,
+  typeById: ReadonlyMap<number, TypeDef>,
+): unknown {
+  if (component.fields.length === 0) return undefined;
+
+  const draft: Record<string, unknown> = {};
+
+  for (const field of component.fields) {
+    const type = typeById.get(field.type);
+    if (type?.editor === 'enum') draft[field.name] = type.options[0];
+  }
+
+  return draft;
 }
 
 export function createRawValues(

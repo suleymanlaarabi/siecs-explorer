@@ -31,9 +31,20 @@ export type SiecsClientOptions = {
   protocol?: 'http' | 'https';
 };
 
-export type EditorType = 'boolean' | 'number' | 'entity' | 'string' | 'object' | 'unsupported';
+export type EditorType =
+  | 'boolean'
+  | 'number'
+  | 'entity'
+  | 'string'
+  | 'object'
+  | 'enum'
+  | 'unsupported';
 
-export type TypeDef = { id: number; name: string; editor: EditorType };
+type BaseTypeDef = { id: number; name: string };
+
+export type TypeDef =
+  | (BaseTypeDef & { editor: 'enum'; options: string[] })
+  | (BaseTypeDef & { editor: Exclude<EditorType, 'enum'> });
 
 export type ComponentField = { name: string; type: number };
 

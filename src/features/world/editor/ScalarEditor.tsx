@@ -1,5 +1,6 @@
 import { Field, Input, Text } from '@chakra-ui/react';
-import type { EditorType } from '../../../lib/siecs/types';
+import type { TypeDef } from '../../../lib/siecs/types';
+import { SelectInput } from '../components/SelectInput';
 
 export function ScalarEditor({
   label,
@@ -9,7 +10,7 @@ export function ScalarEditor({
   onChange,
 }: {
   label: string;
-  type: { name: string; editor: EditorType };
+  type: TypeDef;
   value: string;
   error?: string | undefined;
   onChange: (value: string) => void;
@@ -20,13 +21,17 @@ export function ScalarEditor({
       <Text textStyle="xs" color="fg.muted">
         {type.name}
       </Text>
-      <Input
-        ml="1"
-        type={type.editor === 'number' ? 'number' : 'text'}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        step="any"
-      />
+      {type.editor === 'enum' ? (
+        <SelectInput value={value} options={type.options} onChange={onChange} />
+      ) : (
+        <Input
+          ml="1"
+          type={type.editor === 'number' ? 'number' : 'text'}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          step="any"
+        />
+      )}
       {error ? <Field.ErrorText>{error}</Field.ErrorText> : null}
     </Field.Root>
   );
